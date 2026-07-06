@@ -1,0 +1,2951 @@
+<!DOCTYPE html>
+    <meta charset="utf-8">
+    <title>Blingo</title>
+    <link rel="icon" href="beberr.png" type="image/png">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro&display=swap');
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #000;
+            cursor: none;
+            font-family: 'Source Sans Pro', sans-serif;
+        }
+        canvas {
+            display: block;
+            cursor: none; 
+        }
+        #gameContainer {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+            cursor: none; 
+        }
+        #customCursor {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            background-size: contain;
+            background-repeat: no-repeat;
+            transform: translate(-50%, -50%);
+            display: block;
+        }
+        /* Health bar container is now inside topbar-right */
+        #healthBarContainer { 
+            width: 100px; 
+            height: 4px; 
+            background-color: #888;
+            z-index: 1000;
+            border-radius: 0; 
+            overflow: hidden; 
+            margin-top: 10px; 
+        }
+        #healthBar {
+            position: relative;
+            left: 0; 
+            width: 100%; 
+            height: 100%;
+            background-color: #00FF00; 
+            transition: background-color 0.5s ease;
+            border-radius: 0; 
+        }
+        /* New UI Elements */
+        #homeMenuIcon {
+            position: static;
+            width: 38px;
+            height: 38px;
+            background-image: url('Hamburger@2x.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            cursor: none; 
+            z-index: 1000;
+            background-color: transparent;
+            border-radius: 4px; 
+            margin: 0; 
+        }
+        /* New Chat Button Style */
+        #chatButton {
+            position: static;
+            width: 38px;
+            height: 38px;
+            background-image: url('Chat@2x.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            cursor: none; 
+            z-index: 1000;
+            background-color: transparent;
+            border-radius: 4px; 
+            margin: 0; 
+        }
+        /* New Inventory Button Style */
+        #inventoryButton {
+            position: static;
+            width: 38px;
+            height: 38px;
+            background-image: url('inventoryOff@2x.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            cursor: none; 
+            z-index: 1000;
+            background-color: transparent;
+            border-radius: 4px; 
+            margin: 0 0 0 10px; 
+        }
+
+        #homeMenuOverlay {
+            display: none; 
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 800px; 
+            background-color: rgba(80, 80, 80, 0.9); 
+            z-index: 2000;
+            padding: 20px; 
+            color: white;
+            font-family: 'Source Sans Pro', sans-serif;
+            flex-direction: column; 
+            align-items: center;
+            min-height: 700px; 
+            justify-content: space-between; 
+        }
+        #homeMenuOverlay.open {
+            animation: slideUp 0.2s linear forwards;
+        }
+        #homeMenuOverlay.closing {
+            animation: slideDown 0.2s linear forwards;
+        }
+        #homeMenuOverlay h2 {
+            margin-top: 0;
+            margin-bottom: 20px; 
+            font-size: 28px; 
+            color: #FFFFFF;
+        }
+        .menuButton {
+            width: calc(100% - 40px);
+            padding: 15px 0;
+            margin-bottom: 10px;
+            background-color: #666666; 
+            border: 2px solid #666666; 
+            color: #FFFFFF;
+            font-family: 'Source Sans Pro', sans-serif;
+            font-size: 20px;
+            cursor: none;
+            text-align: center;
+            transition: background-color 0.2s, border-color 0.2s;
+            border-radius: 5px;
+        }
+        /* Specific styles for buttons inside #bottomMenuButtons */
+        #bottomMenuButtons .menuButton {
+            width: 220px; 
+            margin-bottom: 0;
+        }
+        #bottomMenuButtons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            margin-top: 20px;
+        }
+        .menuButton:hover {
+            background-color: rgb(0, 162, 255); 
+            border-color: #666666; 
+        }
+        #closeHomeMenu {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            cursor: none; 
+            color: white;
+            font-size: 40px; 
+        }
+        #helpBox {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 700px;
+            height: 500px;
+            background-color: rgba(128, 128, 128, 0.5);
+            z-index: 2000;
+            padding: 25px;
+            color: white;
+            font-family: 'Source Sans Pro', sans-serif;
+            font-size: 18px;
+        }
+        #helpBox h2 {
+            font-size: 24px;
+        }
+        #helpBox p {
+            margin-bottom: 10px;
+        }
+        #closeHelp {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            cursor: none; 
+            color: white;
+            font-size: 40px; 
+        }
+        /* New styles for Settings Overlay */
+        #settingsOverlay {
+            display: none; 
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            background-color: rgba(80, 80, 80, 0.9);
+            z-index: 2000;
+            padding: 20px;
+            color: white;
+            font-family: 'Source Sans Pro', sans-serif;
+            flex-direction: column;
+            align-items: center;
+        }
+        #settingsOverlay h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 28px;
+            color: #FFFFFF;
+        }
+        #closeSettingsMenu {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            cursor: none; 
+            color: white;
+            font-size: 40px; 
+        }
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: calc(100% - 40px); 
+            margin-bottom: 15px;
+        }
+        .setting-item label {
+            font-size: 18px;
+            margin-right: 10px;
+            font-family: 'Source Sans Pro', sans-serif;
+        }
+        .setting-item select {
+            width: 50%;
+            padding: 8px;
+            font-size: 16px;
+            background-color: #333;
+            color: white;
+            border: 1px solid #555;
+            border-radius: 44px;
+            cursor: none; 
+            -webkit-appearance: none; 
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%204%205%22%3E%3Cpath%20fill%3D%22%23ffffff%22%20d%3D%22M2%200L0%202h4zm0%205L0%203h4z%22%2F%3E%3C%2Fsvg%3E'); 
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 8px 10px;
+            font-family: 'Source Sans Pro', sans-serif;
+        }
+
+        /* NEW INVENTORY OVERLAY */
+        #inventoryOverlay {
+            display: none; 
+            position: absolute;
+            top: 65%; 
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 700px; 
+            height: 500px; 
+            background-color: rgba(40, 40, 40, 0.9); 
+            z-index: 2000;
+            padding: 20px;
+            color: white;
+            font-family: 'Source Sans Pro', sans-serif;
+            flex-direction: column;
+            align-items: center;
+        }
+        #inventoryOverlay h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 28px;
+            color: #FFFFFF;
+        }
+        #closeInventoryMenu {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            cursor: none; 
+            color: white;
+            font-size: 40px; 
+        }
+        #inventorySearchBar { 
+            position: absolute;
+            top: 10px; 
+            right: 55px; 
+            width: 200px; 
+            padding: 8px 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: 1px solid rgb(0, 162, 255); 
+            border-radius: 0; 
+            font-size: 16px;
+            font-family: 'Source Sans Pro', sans-serif;
+            outline: none;
+        }
+        #inventorySearchBar::placeholder {
+            color: #ccc;
+        }
+
+
+        #leaderboard {
+            position: absolute;
+            top: 50px; 
+            right: 10px;
+            width: auto; 
+            max-height: none; 
+            overflow-y: visible; 
+            background-color: transparent; 
+            padding: 10px; 
+            color: white;
+            font-family: 'Source Sans Pro', sans-serif;
+            z-index: 1000;
+            font-size: 16px; 
+            border-radius: 0; 
+            box-shadow: none; 
+            box-sizing: border-box; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: flex-end; 
+        }
+        /* New styles for the specific leaderboard look */
+        .leaderboard-name-frame {
+            background-color: rgba(0, 0, 0, 0.5); 
+            padding: 5px 20px 5px 50px; 
+            margin-bottom: 5px; 
+            border-radius: 0; 
+            align-self: flex-end; 
+        }
+        /* This class will now be used for secondary player names in the leaderboard */
+        .leaderboard-name-frame.large-player {
+            background-color: transparent; 
+            padding-bottom: 5px; 
+            font-size: 16px; 
+        }
+        #leaderboard .leaderboard-player-large {
+            font-size: 16px; 
+            font-weight: bold;
+            color: #FFFFFF;
+            text-shadow: none; 
+            white-space: nowrap; 
+        }
+        #leaderboard .leaderboard-line-divider {
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.2); 
+            margin: 5px 0; 
+            width: 100%; 
+        }
+        #leaderboard .leaderboard-player-small {
+            font-size: 14px;
+            color: #FFFFFF;
+            text-shadow: none; 
+            white-space: nowrap; 
+        }
+        #chatBar {
+            position: absolute;
+            top: calc(50px + 180px + 10px);
+            left: 10px; 
+            width: 350px; 
+            height: 30px; 
+            background-color: rgba(0, 0, 0, 0.8); 
+            color: #FFFFFF;
+            font-family: 'Source Sans Pro', sans-serif;
+            font-size: 16px;
+            padding: 0 10px; 
+            z-index: 1001;
+            display: none; 
+            cursor: none; 
+            border-radius: 0; 
+            border: none;   
+            outline: none;  
+        }
+        #chatMessages {
+            position: absolute;
+            top: calc(50px + 10px);
+            left: 10px; 
+            width: 350px; 
+            height: auto; 
+            max-height: 180px; 
+            background-color: rgba(0, 0, 0, 0); 
+            color: white;
+            overflow-y: auto;
+            display: none; 
+            z-index: 1001;
+            padding-bottom: 0;
+            flex-direction: column; 
+            justify-content: flex-end;
+            max-height: calc(6 * 26px); 
+            box-sizing: border-box; 
+            padding-right: 5px; 
+        }
+        .chatMessage {
+            padding: 5px 12px; 
+            font-family: 'Source Sans Pro', sans-serif;
+            font-size: 15px;
+            background-color: rgba(0, 0, 0, 0); 
+            margin: 2px 0 2px 10px; 
+            display: block;
+            width: fit-content; 
+            max-width: calc(100% - 20px); 
+            text-shadow: none;
+            border-radius: 0; 
+        }
+        /* Hotbar Styles */
+        #hotbarContainer {
+            position: absolute;
+            bottom: 20px; 
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 5px; 
+            z-index: 1000;
+        }
+        .hotbar-slot {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(30, 30, 30, 0.5); 
+            border: 2px solid #555555; 
+            border-radius: 0; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative; 
+            cursor: none; 
+            transition: border-color 0.1s ease, background-color 0.1s ease; 
+            box-sizing: border-box; 
+        }
+        .hotbar-slot.active {
+            background-color: rgba(60, 60, 60, 0.5); 
+            border: 4px solid rgb(0, 162, 255); 
+        }
+        .hotbar-slot .key-number {
+            position: absolute;
+            bottom: 2px;
+            right: 4px;
+            font-family: 'Source Sans Pro', sans-serif;
+            font-size: 12px;
+            color: #FFFFFF;
+            text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; 
+            pointer-events: none; 
+        }
+        .hotbar-slot img.tool-icon {
+            width: 80%; 
+            height: 80%;
+            object-fit: contain;
+            pointer-events: none; 
+        }
+
+        /* Chat Bubble Styles */
+        #chatBubbleContainer {
+            position: absolute;
+            pointer-events: none; 
+            z-index: 2000; 
+            min-width: 80px; 
+            max-width: 250px; 
+        }
+
+        .chatBubble {
+            background-color: white;
+            border: 2px solid #555; 
+            border-radius: 10px; 
+            padding: 5px 10px;
+            position: relative;
+            word-wrap: break-word; 
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.3); 
+            font-family: 'Source Sans Pro', sans-serif;
+            color: black;
+            font-size: 14px;
+            line-height: 1.2;
+            text-align: center; 
+        }
+
+        .chatBubble::after {
+            content: '';
+            position: absolute;
+            bottom: -10px; 
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 10px solid white; 
+            z-index: 1; 
+        }
+
+        .chatBubble::before { 
+            content: '';
+            position: absolute;
+            bottom: -12px; 
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 11px solid transparent; 
+            border-right: 11px solid transparent;
+            border-top: 12px solid #555; 
+            z-index: 0; 
+        }
+
+        #menuBackgroundOverlay {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(128, 128, 128, 0.5); 
+            z-index: 1999; 
+            pointer-events: auto; 
+        }
+
+        /* Add these animations */
+        @keyframes slideUp {
+            from {
+                transform: translate(-50%, 100vh);
+                opacity: 0;
+            }
+            to {
+                transform: translate(-50%, -50%);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translate(-50%, -50%);
+                opacity: 1;
+            }
+            to {
+                transform: translate(-50%, 100vh);
+                opacity: 0;
+            }
+        }
+
+        /* Mobile Controls */
+        #mobileControls {
+            display: none; 
+        }
+
+        @media (hover: none) and (pointer: coarse) {
+            #customCursor {
+                display: none !important; 
+            }
+            #mobileControls {
+                display: block; 
+            }
+        }
+
+        #thumbstickContainer {
+            position: absolute; 
+            bottom: 90px;
+            left: 20px;
+            width: 100px; 
+            height: 100px; 
+            background-image: url('thumb .png'); 
+            background-size: cover; 
+            background-repeat: no-repeat;
+            background-position: center;
+            background-color: transparent; 
+            border-radius: 8px; 
+            border: none; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            touch-action: none; 
+            box-shadow: none; 
+        }
+
+        #thumbstick {
+            width: 50px; 
+            height: 50px; 
+            background-image: url('stick.png'); 
+            background-size: contain; 
+            background-repeat: no-repeat;
+            background-position: center;
+            background-color: transparent; 
+            border-radius: 50%; 
+            border: none; 
+            position: absolute; 
+            transform: translate(-50%, -50%); 
+            left: 50%;
+            top: 50%;
+            box-shadow: none; 
+        }
+
+        #jumpButton {
+            position: absolute;
+            bottom: 90px;
+            right: 20px;
+            width: 70px;
+            height: 70px;
+            background-image: url('hoe.png'); 
+            background-size: contain; 
+            background-repeat: no-repeat;
+            background-position: center;
+            background-color: transparent; 
+            border-radius: 50%; 
+            border: none; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: transparent; 
+            font-size: 0; 
+            font-family: unset; 
+            font-weight: unset; 
+            text-shadow: none; 
+            user-select: none; 
+            -webkit-user-select: none;
+            z-index: 1000;
+            cursor: pointer;
+            touch-action: manipulation; 
+            box-shadow: none; 
+        }
+
+        /* Topbar styles */
+        #topbar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            background-color: rgba(0, 0, 0, 0.5); 
+            z-index: 999;
+            display: flex;
+            align-items: center; 
+            justify-content: space-between; 
+            padding: 0 10px;
+            box-sizing: border-box;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2); 
+        }
+        #topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 10px; 
+        }
+        #topbar-right {
+            display: flex;
+            flex-direction: column; 
+            align-items: flex-end; 
+            gap: 0px; 
+            padding-right: 10px;
+        }
+        /* Adjust existing elements to fit into the topbar structure */
+        #homeMenuIcon, #chatButton, #inventoryButton {
+            position: static; 
+            transform: none; 
+        }
+        /* Style for the player name in the topbar */
+        #playerNameTopbar {
+            font-size: 16px; 
+            font-weight: bold;
+            color: #FFFFFF;
+            text-shadow: none; 
+            white-space: nowrap; 
+            margin-top: 5px; 
+            margin-bottom: 0px; 
+        }
+        #topMenuButtons {
+            display: flex;
+            justify-content: center; 
+            gap: 10px; 
+            width: 100%; 
+            margin-bottom: 20px; 
+        }
+
+        #topMenuButtons .menuButton {
+            width: 220px; 
+            margin-bottom: 0; 
+        }
+        #playerInfoMenu {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 40px; 
+            margin-top: 20px; 
+            font-size: 24px;
+            font-weight: bold;
+            color: #FFFFFF;
+            text-shadow: none;
+            gap: 10px; 
+        }
+
+        #playerInfoMenu img {
+            width: 48px;
+            height: 48px;
+            object-fit: contain;
+        }
+        #leaveGameBtn {
+            background-image: url('LeaveIcon.png');
+            background-repeat: no-repeat;
+            background-position: 15px center; 
+            background-size: 32px 32px; 
+            padding-left: 60px; 
+            text-align: left; 
+        }
+        #resetCharacterBtn {
+            background-image: url('ResetIcon.png');
+            background-repeat: no-repeat;
+            background-position: 15px center; 
+            background-size: 32px 32px;
+            padding-left: 60px; 
+            text-align: left;
+        }
+        #settingsBtn {
+            background-image: url('GameSettingsTab@2x.png');
+            background-repeat: no-repeat;
+            background-position: 15px center;
+            background-size: 32px 32px;
+            padding-left: 60px;
+            text-align: left;
+        }
+        #helpBtn {
+            background-image: url('HelpTab@2x.png');
+            background-repeat: no-repeat;
+            background-position: 15px center;
+            background-size: 32px 32px;
+            padding-left: 60px;
+            text-align: left;
+        }
+        /* Money Display */
+        #moneyDisplay {
+            color: #FFFFFF;
+            font-size: 16px;
+            font-weight: bold;
+            margin-left: 10px; /* Adjust spacing from other left-aligned elements */
+            text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+        }
+        /* Tycoon Panel Overlay */
+        #tycoonPanelOverlay {
+            display: none; 
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 500px; 
+            background-color: rgba(40, 40, 40, 0.9); 
+            z-index: 2000;
+            padding: 20px;
+            color: white;
+            font-family: 'Source Sans Pro', sans-serif;
+            flex-direction: column;
+            align-items: center;
+            border-radius: 5px; 
+            max-height: 90vh; /* Allow scrolling for more content */
+            overflow-y: auto; /* Enable scrolling */
+        }
+        #tycoonPanelOverlay h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 28px;
+            color: #FFFFFF;
+        }
+        #closeTycoonPanel {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            cursor: none; 
+            color: white;
+            font-size: 40px; 
+        }
+        #tycoonStats {
+            width: 100%;
+            padding: 10px 0;
+            text-align: center;
+            font-size: 18px;
+            margin-bottom: 20px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 3px;
+        }
+        /* New styles for Tycoon upgrade sections */
+        .tycoon-upgrade-section {
+            width: 100%;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+        }
+        .tycoon-upgrade-section h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 22px;
+            color: #FFFFFF;
+            text-align: center;
+        }
+        .tycoon-upgrade-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .tycoon-upgrade-item:last-child {
+            margin-bottom: 0;
+        }
+        .tycoon-upgrade-item span {
+            font-size: 16px;
+        }
+        .tycoon-upgrade-button {
+            padding: 8px 15px;
+            background-color: #666666; 
+            border: 2px solid #666666; 
+            color: #FFFFFF;
+            font-family: 'Source Sans Pro', sans-serif;
+            font-size: 16px;
+            cursor: none;
+            text-align: center;
+            transition: background-color 0.2s, border-color 0.2s;
+            border-radius: 5px;
+            outline: none; /* Remove blue outline on click */
+        }
+        .tycoon-upgrade-button:hover:not(:disabled) {
+            background-color: rgb(0, 162, 255); 
+            border-color: #666666; 
+        }
+        .tycoon-upgrade-button:disabled {
+            background-color: #444444;
+            border-color: #444444;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .tycoon-upgrade-button.max-level {
+            background-color: #28a745; /* Green for max level */
+            border-color: #28a745;
+            cursor: not-allowed;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="customCursor"></div>
+        
+        <div id="topbar">
+            <div id="topbar-left">
+                <div id="homeMenuIcon"></div>
+                <div id="chatButton"></div> 
+                <div id="inventoryButton"></div> 
+                <div id="moneyDisplay">$0</div> 
+            </div>
+            <div id="topbar-right">
+                <div id="playerNameTopbar"></div>
+                <div id="healthBarContainer">
+                    <div id="healthBar"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="leaderboard"></div>
+
+        <div id="menuBackgroundOverlay"></div> 
+        <div id="homeMenuOverlay">
+            <div id="playerInfoMenu">
+                <img src="/placeholder.png" alt="Player Icon">
+                <span id="playerNameMenu"></span>
+            </div>
+            <div id="topMenuButtons">
+                <button class="menuButton" id="settingsBtn">Settings</button>
+                <button class="menuButton" id="helpBtn">Help</button>
+                <button class="menuButton" id="fullscreenBtn">Fullscreen</button>
+            </div>
+            <div style="flex-grow: 1;"></div> 
+            <div id="bottomMenuButtons">
+                <button class="menuButton" id="resumeGameBtn">Resume Game</button>
+                <button class="menuButton" id="resetCharacterBtn">Reset Character</button>
+                <button class="menuButton" id="leaveGameBtn">Leave Game</button>
+            </div>
+        </div>
+
+        <div id="helpBox">
+            <div id="closeHelp">&#xd7;</div>
+            <h2>Help</h2>
+            <p>WASD - Move character</p>
+            <p>Space - Jump</p>
+            <p>Right Click + Mouse - Rotate camera</p>
+            <p>Mouse Wheel - Zoom in/out</p>
+            <p>Left Click - Place block (when build tool is active)</p>
+        </div>
+
+        <!-- NEW SETTINGS OVERLAY -->
+        <div id="settingsOverlay">
+            <div id="closeSettingsMenu">&#xd7;</div>
+            <h2>Settings</h2>
+            <div class="setting-item">
+                <label for="resolutionScale">Resolution Scale:</label>
+                <select id="resolutionScale">
+                    <option value="0.5">0.5x (Lowest)</option>
+                    <option value="0.75">0.75x (Low)</option>
+                    <option value="1" selected>1x (Native)</option>
+                    <option value="1.25">1.25x (High)</option>
+                    <option value="1.5">1.5x (Highest)</option>
+                </select>
+            </div>
+            <div class="setting-item">
+                <label for="shiftLockToggle">Shift Lock:</label>
+                <select id="shiftLockToggle">
+                    <option value="off">Off</option>
+                    <option value="on">On</option>
+                </select>
+            </div>
+            <!-- Add other settings here later -->
+        </div>
+
+        <!-- NEW INVENTORY OVERLAY -->
+        <div id="inventoryOverlay">
+            <div id="closeInventoryMenu">&#xd7;</div>
+            <input type="text" id="inventorySearchBar" placeholder="Search...">
+            <!-- Placeholder for inventory content -->
+        </div>
+
+        <!-- NEW TYCOON PANEL OVERLAY -->
+        <div id="tycoonPanelOverlay">
+            <div id="closeTycoonPanel">&#xd7;</div>
+            <h2>McDonald's Tycoon</h2>
+            <div id="tycoonStats">
+                Dropper Level: <span id="dropperLevelDisplay">1</span><br>
+                Money per drop: <span id="moneyPerDropDisplay">1</span><br>
+                Drop interval: <span id="dropIntervalDisplay">1.0</span>s
+            </div>
+
+            <!-- Dropper Upgrade Section -->
+            <div class="tycoon-upgrade-section">
+                <h3>Dropper Upgrades</h3>
+                <div class="tycoon-upgrade-item">
+                    <span>Next upgrade cost: <span id="dropperUpgradeCostDisplay">$20</span></span>
+                    <button class="tycoon-upgrade-button" id="upgradeDropperBtn">Upgrade Dropper</button>
+                </div>
+            </div>
+
+            <!-- Building Upgrades Section -->
+            <div class="tycoon-upgrade-section">
+                <h3>Building Upgrades</h3>
+                <div class="tycoon-upgrade-item">
+                    <span>Walls Level: <span id="wallsLevelDisplay">0</span></span>
+                    <button class="tycoon-upgrade-button" id="upgradeWallsBtn" data-part="walls">Upgrade Walls</button>
+                </div>
+                <div class="tycoon-upgrade-item">
+                    <span>Windows Level: <span id="windowsLevelDisplay">0</span></span>
+                    <button class="tycoon-upgrade-button" id="upgradeWindowsBtn" data-part="windows">Upgrade Windows</button>
+                </div>
+                <div class="tycoon-upgrade-item">
+                    <span>Doors Level: <span id="doorsLevelDisplay">0</span></span>
+                    <button class="tycoon-upgrade-button" id="upgradeDoorsBtn" data-part="doors">Upgrade Doors</button>
+                </div>
+                <div class="tycoon-upgrade-item">
+                    <span>Tables Level: <span id="tablesLevelDisplay">0</span></span>
+                    <button class="tycoon-upgrade-button" id="upgradeTablesBtn" data-part="tables">Upgrade Tables</button>
+                </div>
+                <div class="tycoon-upgrade-item">
+                    <span>Logo Level: <span id="logoLevelDisplay">0</span></span>
+                    <button class="tycoon-upgrade-button" id="upgradeLogoBtn" data-part="logo">Upgrade Logo</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="chatMessages"></div>
+        <input type="text" id="chatBar" placeholder="Click to chat or press /">
+
+        <div id="hotbarContainer">
+            <!-- Hotbar slots will be generated here by JavaScript -->
+        </div>
+
+        <!-- Mobile Controls -->
+        <div id="mobileControls">
+            <div id="thumbstickContainer">
+                <div id="thumbstick"></div>
+            </div>
+            <div id="jumpButton"></div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script>
+        // === USER: PASTE YOUR BASE64 AUDIO DATA HERE ===
+        const BASE64_JUMP_SOUND = "data:audio/mpeg;base64,YOUR_JUMP_SOUND_BASE64_HERE";
+        const BASE64_WALK_SOUND = "data:audio/mpeg;base64,YOUR_WALK_SOUND_BASE64_HERE";
+        const BASE64_DEATH_SOUND = "data:audio/mpeg;base64,YOUR_DEATH_SOUND_BASE64_HERE";
+        // ===============================================
+
+        let scene, camera, renderer, character, characterModel;
+        let mixer, currentClipAction;
+        let moveForward = false,
+            moveBackward = false,
+            moveLeft = false,
+            moveRight = false,
+            jump = false;
+        let isMovingHorizontally = false; 
+        let velocity = new THREE.Vector3();
+        let horizontalVelocityX = 0; 
+        let horizontalVelocityZ = 0; 
+        let direction = new THREE.Vector3(); 
+        let thumbstickVector = new THREE.Vector2(0, 0); 
+        let rotation = new THREE.Vector2(); 
+        let clock = new THREE.Clock();
+        let isRightMouseDown = false;
+        let cameraOffset = new THREE.Vector3(0, 5, 10);
+        let lastFrameTime = 0;
+        const targetFPS = 60;
+        const frameInterval = 1000 / targetFPS;
+        const jumpForce = 12; 
+        const gravity = -45; 
+        let isJumping = false;
+        let isOnGround = true; 
+        const mouseSensitivity = 0.004;
+        const speed = 8.0; 
+        let animationFrameId;
+        const commonColors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF', '#FFA500', '#800080', '#008000', '#000080'];
+        let isChatting = false;
+        let chatMessages = [];
+        let username = "Player" + Math.floor(Math.random() * 9999 + 1);
+        let jumpSound;
+        let deathSound; 
+        let baseplateTexture;
+        let skyboxTexture;
+        let isFalling = false; 
+        let isRespawning = false; 
+        let fallStartTime = 0;
+        const FALL_DURATION = 7000; 
+        const RESPAWN_COOLDOWN = 5000; 
+        
+        const rotationSpeed = 0.2; 
+        const CHARACTER_HALF_WIDTH = 0.8; 
+        const CHARACTER_HEIGHT = 3.2; 
+        let currentActionName = 'idle'; 
+
+        let animationActions = {}; 
+        const WALK_ANIM_SPEED = 1.5; 
+
+        const HOTBAR_SLOTS = 9; 
+        let activeHotbarSlot = 0; 
+        let currentActiveTool = null; 
+        
+        let raycaster = new THREE.Raycaster(); 
+        let mouse = new THREE.Vector2(); 
+        let hotbarItems = [
+            { name: 'Tycoon', icon: '/mcdonalds_logo.png', type: 'tycoon' }
+        ];
+
+        let currentChatBubble = null;
+        const CHAT_BUBBLE_DURATION = 5000; 
+
+        let audioContext;
+        let walkSoundBuffer;
+        let walkSoundSource = null; 
+        let isWalkSoundPlaying = false; 
+
+        let currentResolutionScale = 1; 
+
+        let isShiftLockEnabled = false; 
+        let isShiftLockActive = false;  
+        const shiftLockCursorImage = '/MouseLockedCursor.png'; 
+
+        
+        let rightArmBone = null;   
+
+        let isTouchDevice = false; 
+        let thumbstickTouched = false;
+        let thumbstickCenter = { x: 0, y: 0 }; 
+        let thumbstickRadius = 0; 
+
+        let isCameraDragging = false; 
+        let lastTouchX = 0;
+        let lastTouchY = 0;
+
+        // Tycoon Variables
+        let playerMoney = 0;
+        let dropperIntervalId = null;
+        let tycoonDropperMesh = null; 
+        let tycoonParts = {
+            dropper: {
+                currentLevel: 1,
+                maxLevel: 5,
+                moneyPerDrop: [1, 2, 3, 4, 5],
+                dropIntervalMs: [500, 400, 300, 200, 100], // Income faster: reduced interval
+                costs: [100, 250, 500, 750, 1000], // Costs higher
+                meshes: [] // Not used for dropper's 3D, but keeping consistent structure
+            },
+            walls: {
+                currentLevel: 0,
+                maxLevel: 3,
+                costs: [150, 300, 600], // Costs higher
+                displayName: 'Walls',
+                meshes: [] // 3D objects for walls, including roof
+            },
+            windows: {
+                currentLevel: 0,
+                maxLevel: 2,
+                costs: [200, 400], // Costs higher
+                displayName: 'Windows',
+                meshes: [] // 3D objects for windows
+            },
+            doors: { 
+                currentLevel: 0,
+                maxLevel: 1,
+                costs: [100], 
+                displayName: 'Doors',
+                meshes: [] 
+            },
+            tables: { 
+                currentLevel: 0,
+                maxLevel: 1,
+                costs: [150],
+                displayName: 'Tables',
+                meshes: [] 
+            },
+            logo: {
+                currentLevel: 0,
+                maxLevel: 1,
+                costs: [500], // Costs higher
+                displayName: 'McDonald\'s Logo',
+                meshes: [] // 3D object for logo
+            }
+        };
+
+        function getRandomColor() {
+            return commonColors[Math.floor(Math.random() * commonColors.length)];
+        }
+
+        function updateLeaderboard() {
+            const leaderboard = document.getElementById('leaderboard');
+            leaderboard.innerHTML = `
+                    <hr class="leaderboard-line-divider">
+                    <div class="leaderboard-name-frame">
+                        <div class="leaderboard-player-small">${username}</div>
+                    </div>
+                `;
+        }
+        function init() {
+            isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0;
+            
+            scene = new THREE.Scene();
+            const textureLoader = new THREE.TextureLoader();
+            skyboxTexture = textureLoader.load('roblox_sky.png', function(texture) {
+                scene.background = texture;
+            });
+
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            loadSound(BASE64_JUMP_SOUND, (buffer) => {
+                jumpSound = buffer;
+            });
+            loadSound(BASE64_WALK_SOUND, (buffer) => {
+                walkSoundBuffer = buffer;
+            });
+            loadSound(BASE64_DEATH_SOUND, (buffer) => { 
+                deathSound = buffer;
+            });
+
+            THREE.LinearFilter = true;
+            createBaseplate(scene);
+            createTycoon(scene); 
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio * currentResolutionScale); 
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap; 
+            document.getElementById('gameContainer').appendChild(renderer.domElement);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(5, 10, 7);
+            directionalLight.castShadow = true; 
+            directionalLight.shadow.mapSize.width = 1024; 
+            directionalLight.shadow.mapSize.height = 1024; 
+            directionalLight.shadow.camera.near = 0.5;
+            directionalLight.shadow.camera.far = 50;
+            directionalLight.shadow.camera.left = -20;
+            directionalLight.shadow.camera.right = 20;
+            directionalLight.shadow.camera.top = 20;
+            directionalLight.shadow.camera.bottom = -20;
+            scene.add(directionalLight);
+
+            character = new THREE.Group();
+            character.position.set(0, 1.5, 15); 
+            character.castShadow = true; 
+            scene.add(character);
+            character.visible = true;
+
+            loadCharacterModel();
+            
+            updateCameraPosition();
+            document.addEventListener('keydown', onKeyDown);
+            document.addEventListener('keyup', onKeyUp);
+            
+            const gameContainer = document.getElementById('gameContainer');
+            gameContainer.addEventListener('mousemove', onMouseMove);
+            gameContainer.addEventListener('mousedown', onMouseDown);
+            gameContainer.addEventListener('mouseup', onMouseUp);
+            gameContainer.addEventListener('contextmenu', e => e.preventDefault());
+            gameContainer.addEventListener('wheel', onMouseWheel);
+
+            if (isTouchDevice) {
+                gameContainer.addEventListener('touchstart', handleGameContainerTouchStart, { passive: false });
+                gameContainer.addEventListener('touchmove', handleGameContainerTouchMove, { passive: false });
+                gameContainer.addEventListener('touchend', handleGameContainerTouchEnd, { passive: false });
+                gameContainer.addEventListener('touchcancel', handleGameContainerTouchEnd, { passive: false });
+            }
+            
+            window.addEventListener('resize', onWindowResize, false);
+            
+            document.getElementById('playerNameTopbar').textContent = username; 
+            document.getElementById('playerNameMenu').textContent = username; 
+            updateLeaderboard(); 
+            initializeChatUI(); 
+            initializeHomeMenu(); 
+            initializeSettingsUI(); 
+            initializeInventoryUI(); 
+            initializeHotbarUI(); 
+            initializeTycoonUI(); 
+            updateCursor(); 
+            updateMoneyDisplay(); 
+            startDropper(); 
+            animate();
+        }
+
+        async function loadSound(base64Data, callback) {
+            if (!base64Data || base64Data.indexOf('data:audio/') !== 0) {
+                console.warn("Invalid base64 audio data provided. Please ensure it starts with 'data:audio/'.");
+                return;
+            }
+            try {
+                const base64Audio = base64Data.split(',')[1];
+                const binaryString = atob(base64Audio);
+                const len = binaryString.length;
+                const bytes = new Uint8Array(len);
+                for (let i = 0; i < len; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                const arrayBuffer = bytes.buffer;
+
+                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                callback(audioBuffer);
+            } catch (error) {
+                console.error(`Error loading sound from base64 data:`, error);
+            }
+        }
+
+        function playSound(buffer, loop = false, volume = 1.0, playbackRate = 1.0) {
+            if (!buffer || !audioContext) {
+                console.warn("Audio buffer or context not ready.");
+                return null;
+            }
+
+            const source = audioContext.createBufferSource();
+            source.buffer = buffer;
+            source.loop = loop;
+            source.playbackRate.value = playbackRate; 
+
+            const gainNode = audioContext.createGain();
+            gainNode.gain.value = volume;
+
+            source.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            try {
+                source.start(0);
+                return source; 
+            } catch (e) {
+                console.error("Error starting sound source:", e);
+                return null; 
+            }
+        }
+
+        function stopSound(source) {
+            if (source) {
+                try {
+                    source.stop();
+                    source.disconnect();
+                } catch (e) {
+                    console.warn("Error stopping sound source:", e);
+                }
+            }
+        }
+
+        function createBaseplate(targetScene) {
+            const baseplateGeometry = new THREE.BoxGeometry(100, 1, 100);
+            const textureLoader = new THREE.TextureLoader();
+            const baseplateTexture = textureLoader.load('Screenshot_132.png', function(texture) {
+                texture.wrapS = THREE.RepeatWrapping;
+                texture.wrapT = THREE.RepeatWrapping;
+                texture.repeat.set(156, 156); 
+            });
+            const baseplateMaterial = new THREE.MeshPhongMaterial({
+                map: baseplateTexture,
+                color: 0xFFFFFF
+            });
+            const baseplate = new THREE.Mesh(baseplateGeometry, baseplateMaterial);
+            baseplate.position.y = -0.5;
+            baseplate.receiveShadow = true; 
+            baseplate.castShadow = true;
+            baseplate.name = 'baseplate';
+            targetScene.add(baseplate);
+        }
+        
+        function loadCharacterModel() {
+            const loader = new THREE.GLTFLoader();
+            loader.load('r6_roblox_noob_animated.glb', function(gltf) { 
+                characterModel = gltf.scene;
+                characterModel.scale.set(1.6, 1.6, 1.6); 
+                characterModel.position.y = 0; 
+                characterModel.rotation.y = Math.PI; 
+                characterModel.visible = true;
+                character.add(characterModel);
+
+                mixer = new THREE.AnimationMixer(characterModel);
+                
+                let idleClip = gltf.animations.find(clip => clip.name.toLowerCase().includes('idle'));
+                animationActions.idle = idleClip ? mixer.clipAction(idleClip) : null;
+                
+                let walkClip = gltf.animations.find(clip => clip.name.toLowerCase().includes('run') || clip.name.toLowerCase().includes('walk'));
+                animationActions.walk = walkClip ? mixer.clipAction(walkClip) : null;
+                
+                let jumpClip = gltf.animations.find(clip => clip.name.toLowerCase().includes('jump'));
+                animationActions.jump = jumpClip ? mixer.clipAction(jumpClip) : null;
+
+                Object.values(animationActions).forEach(action => {
+                    if (action) { 
+                        action.setLoop(THREE.LoopRepeat);
+                        action.setEffectiveWeight(0); 
+                        if (action === animationActions.walk) {
+                            action.setEffectiveTimeScale(WALK_ANIM_SPEED);
+                        }
+                    }
+                });
+
+                if (animationActions.jump) {
+                    animationActions.jump.setLoop(THREE.LoopOnce);
+                    animationActions.jump.clampWhenFinished = true;
+                }
+
+                if (animationActions.idle) {
+                    animationActions.idle.setEffectiveWeight(1);
+                    animationActions.idle.play();
+                }
+                currentActionName = 'idle';
+                characterModel.traverse(node => {
+                    if (node.isMesh) {
+                        node.castShadow = true;     
+                        node.receiveShadow = false; 
+                        if (node.material) {
+                            node.material = node.material.clone();
+                            node.material.emissive.set(0x333333); 
+                            node.material.emissiveIntensity = 0.5; 
+                            node.material.needsUpdate = true;
+                        }
+                    }
+                    if (node.isBone && node.name === 'Right Arm') { 
+                        rightArmBone = node;
+                    }
+                });
+                cameraOffset.set(0, 5, 5); 
+                updateCameraPosition();
+            });
+        }
+
+        function fadeToAnimation(actionName, duration = 0.1) {
+            if (!mixer || !animationActions || !animationActions[actionName]) {
+                return;
+            }
+
+            const newAction = animationActions[actionName];
+            const currentActiveAction = animationActions[currentActionName];
+
+            if (currentActiveAction === newAction) {
+                if (!newAction.enabled || newAction.weight < 0.99) {
+                     newAction.enabled = true;
+                     newAction.setEffectiveWeight(1);
+                     newAction.play();
+                }
+                return;
+            }
+
+            if (currentActiveAction) {
+                currentActiveAction.fadeOut(duration);
+            }
+
+            newAction.reset(); 
+            newAction.enabled = true;
+            newAction.setEffectiveWeight(1); 
+            newAction.fadeIn(duration); 
+            newAction.play(); 
+
+            if (newAction === animationActions.walk) {
+                newAction.setEffectiveTimeScale(WALK_ANIM_SPEED);
+            } else {
+                newAction.setEffectiveTimeScale(1);
+            }
+            
+            if (newAction === animationActions.jump) {
+                newAction.setLoop(THREE.LoopOnce);
+                newAction.clampWhenFinished = true;
+            } else {
+                newAction.setLoop(THREE.LoopRepeat);
+                newAction.clampWhenFinished = false;
+            }
+
+            currentActionName = actionName; 
+        }
+
+        function onWindowResize() {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio * currentResolutionScale); 
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            
+            const thumbstickContainer = document.getElementById('thumbstickContainer');
+            if (thumbstickContainer) {
+                const rect = thumbstickContainer.getBoundingClientRect();
+                thumbstickCenter = {
+                    x: rect.left + rect.width / 2,
+                    y: rect.top + rect.height / 2
+                };
+                thumbstickRadius = rect.width / 2;
+            }
+        }
+        function onKeyDown(event) {
+            if (event.key === '/') {
+                event.preventDefault();
+                toggleChatUI(); 
+                return; 
+            }
+
+            if (event.code === 'Escape') {
+                event.preventDefault(); 
+                const homeMenuOverlay = document.getElementById('homeMenuOverlay');
+                const helpBox = document.getElementById('helpBox');
+                const settingsOverlay = document.getElementById('settingsOverlay');
+                const inventoryOverlay = document.getElementById('inventoryOverlay'); 
+                const tycoonPanelOverlay = document.getElementById('tycoonPanelOverlay'); 
+                const chatBar = document.getElementById('chatBar');
+                const chatMessagesDiv = document.getElementById('chatMessages');
+
+                if (settingsOverlay.style.display === 'flex') {
+                    settingsOverlay.style.display = 'none';
+                    updateMenuBackgroundOverlay(); 
+                } else if (helpBox.style.display === 'block') {
+                    helpBox.style.display = 'none';
+                    updateMenuBackgroundOverlay(); 
+                } else if (inventoryOverlay.style.display === 'flex') { 
+                    toggleInventoryMenu(); 
+                } else if (tycoonPanelOverlay.style.display === 'flex') { 
+                    toggleTycoonPanel(false); // Explicitly close when escape is pressed
+                }
+                else if (chatBar.style.display === 'block') { 
+                    toggleChatUI();
+                } else {
+                    toggleHomeMenu();
+                }
+                return;
+            }
+            
+            if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') {
+                if (isShiftLockEnabled && !isChatting) {
+                    isShiftLockActive = !isShiftLockActive; 
+                    if (isShiftLockActive) {
+                        rotation.y = character.rotation.y; 
+                    }
+                    updateCursor();
+                }
+            }
+
+            if (!isChatting) {
+                switch (event.code) {
+                    case 'KeyW':
+                        moveForward = true;
+                        break;
+                    case 'KeyA':
+                        moveLeft = true;
+                        break;
+                    case 'KeyS':
+                        moveBackward = true;
+                        break;
+                    case 'KeyD':
+                        moveRight = true;
+                        break;
+                    case 'Space':
+                        jump = true; 
+                        break;
+                    case 'Digit1':
+                    case 'Digit2':
+                    case 'Digit3':
+                    case 'Digit4':
+                    case 'Digit5':
+                    case 'Digit6':
+                    case 'Digit7':
+                    case 'Digit8':
+                    case 'Digit9':
+                        const slotNumber = parseInt(event.key); 
+                        if (slotNumber >= 1 && slotNumber <= hotbarItems.length) {
+                            if (slotNumber === activeHotbarSlot) {
+                                activeHotbarSlot = 0; 
+                            } else {
+                                activeHotbarSlot = slotNumber;
+                            }
+                            updateHotbarUI();
+                        }
+                        break;
+                }
+            }
+        }
+        function onKeyUp(event) {
+            switch (event.code) {
+                case 'KeyW':
+                    moveForward = false;
+                    break;
+                case 'KeyA':
+                    moveLeft = false;
+                    break;
+                case 'KeyS':
+                    moveBackward = false;
+                    break;
+                case 'KeyD':
+                    moveRight = false; 
+                    break;
+            }
+        }
+        function onMouseDown(event) {
+            if (event.button === 2) { 
+                isRightMouseDown = true;
+            } else if (event.button === 0) { 
+                const homeMenuOpen = document.getElementById('homeMenuOverlay').style.display === 'flex';
+                const helpBoxOpen = document.getElementById('helpBox').style.display === 'block';
+                const settingsOverlayOpen = document.getElementById('settingsOverlay').style.display === 'flex';
+                const inventoryOverlayOpen = document.getElementById('inventoryOverlay').style.display === 'flex'; 
+                const tycoonPanelOverlayOpen = document.getElementById('tycoonPanelOverlay').style.display === 'flex'; 
+                const chatUIOpen = document.getElementById('chatBar').style.display === 'block';
+
+                if (!homeMenuOpen && !helpBoxOpen && !settingsOverlayOpen && !inventoryOverlayOpen && !tycoonPanelOverlayOpen && !chatUIOpen) { 
+                    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+                    raycaster.setFromCamera(mouse, camera);
+
+                    // Removed build and remove tool logic
+                }
+            }
+        }
+        function onMouseUp(event) {
+            if (event.button === 2) {
+                isRightMouseDown = false;
+            }
+        }
+        function onMouseMove(event) {
+            if (isTouchDevice) return;
+
+            const customCursor = document.getElementById('customCursor');
+
+            if (!isShiftLockActive) {
+                customCursor.style.left = event.clientX + 'px';
+                customCursor.style.top = event.clientY + 'px';
+            }
+            
+            if (isRightMouseDown || isShiftLockActive) {
+                rotation.y -= event.movementX * mouseSensitivity; 
+                rotation.x -= event.movementY * mouseSensitivity; 
+                rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, rotation.x));
+                rotation.y = normalizeAngle(rotation.y); 
+            }
+        }
+        function onMouseWheel(event) {
+            const zoomSpeed = 0.1;
+            cameraOffset.z += event.deltaY * zoomSpeed;
+            cameraOffset.z = Math.max(5, Math.min(30, cameraOffset.z)); 
+            updateCameraPosition();
+        }
+        function updateCameraPosition() {
+            const targetLookAt = character.position.clone().add(new THREE.Vector3(0, CHARACTER_HEIGHT * 0.8, 0));
+
+            const offset = cameraOffset.clone();
+            offset.applyAxisAngle(new THREE.Vector3(1, 0, 0), rotation.x); 
+            offset.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotation.y); 
+            camera.position.copy(character.position).add(offset);
+            camera.lookAt(targetLookAt);
+        }
+        function checkBlockCollisions() {
+            const characterMinX = character.position.x - CHARACTER_HALF_WIDTH;
+            const characterMaxX = character.position.x + CHARACTER_HALF_WIDTH;
+            const characterMinY = character.position.y;
+            const characterMaxY = character.position.y + CHARACTER_HEIGHT;
+            const characterMinZ = character.position.z - CHARACTER_HALF_WIDTH;
+            const characterMaxZ = character.position.z + CHARACTER_HALF_WIDTH;
+
+            const characterBox = new THREE.Box3(
+                new THREE.Vector3(characterMinX, characterMinY, characterMinZ),
+                new THREE.Vector3(characterMaxX, characterMaxY, characterMinZ) 
+            );
+
+            const objectsForCollision = [scene.getObjectByName('baseplate')].filter(Boolean); // Removed 'blocks' from collision detection
+
+            isOnGround = false; 
+
+            for (const obj of objectsForCollision) {
+                const blockBox = new THREE.Box3().setFromObject(obj);
+
+                if (characterBox.intersectsBox(blockBox)) {
+                    const overlapX = Math.min(characterMaxX, blockBox.max.x) - Math.max(characterMinX, blockBox.min.x);
+                    const overlapY = Math.min(characterMaxY, blockBox.max.y) - Math.max(characterMinY, blockBox.min.y);
+                    const overlapZ = Math.min(characterMaxZ, blockBox.max.z) - Math.max(characterMinZ, blockBox.min.z);
+
+                    const minOverlap = Math.min(overlapX, overlapY, overlapZ);
+                    const epsilon = 0.01; 
+
+                    if (minOverlap === overlapY) {
+                        if (velocity.y <= 0) { 
+                            if (characterMinY <= blockBox.max.y + epsilon) { 
+                                character.position.y = blockBox.max.y; 
+                                velocity.y = 0;
+                                isOnGround = true; 
+                                if (isJumping) { 
+                                    isJumping = false;
+                                    if (animationActions.jump && currentActionName === 'jump') {
+                                        animationActions.jump.stop(); 
+                                        animationActions.jump.setEffectiveWeight(0); 
+                                    }
+                                    const isCurrentlyMoving = (moveForward || moveBackward || moveLeft || moveRight || thumbstickVector.lengthSq() > 0);
+                                    if (isCurrentlyMoving) {
+                                        if (mixer && animationActions.walk) fadeToAnimation('walk', 0.1);
+                                    } else {
+                                        if (mixer && animationActions.idle) fadeToAnimation('idle', 0.1);
+                                    }
+                                }
+                            } else { 
+                                if (characterMaxY >= blockBox.min.y - epsilon) { 
+                                    character.position.y = blockBox.min.y - CHARACTER_HEIGHT; 
+                                    velocity.y = 0; 
+                                }
+                            }
+                        } else if (minOverlap === overlapX) {
+                            if (character.position.x < blockBox.getCenter(new THREE.Vector3()).x) {
+                                character.position.x -= overlapX;
+                            } else {
+                                character.position.x += overlapX;
+                            }
+                            horizontalVelocityX = 0; 
+                        } else if (minOverlap === overlapZ) {
+                            if (character.position.z < blockBox.getCenter(new THREE.Vector3()).z) {
+                                character.position.z -= overlapZ;
+                            } else {
+                                character.position.z += overlapZ;
+                            }
+                            horizontalVelocityZ = 0; 
+                        }
+
+                        characterBox.set(
+                            new THREE.Vector3(character.position.x - CHARACTER_HALF_WIDTH, character.position.y, character.position.z - CHARACTER_HALF_WIDTH),
+                            new THREE.Vector3(character.position.x + CHARACTER_HALF_WIDTH, character.position.y + CHARACTER_HEIGHT, character.position.z + CHARACTER_HALF_WIDTH)
+                        );
+                    }
+                }
+            }
+        }
+        function animate(currentTime) {
+            const animationFrameId = requestAnimationFrame(animate);
+            if (currentTime - lastFrameTime < frameInterval) {
+                return;
+            }
+            lastFrameTime = currentTime - currentTime % frameInterval;
+
+            const delta = Math.min(clock.getDelta(), 0.1);
+
+            if (mixer) {
+                mixer.update(delta);
+            }
+
+            velocity.y += gravity * delta;
+
+            direction.set(0, 0, 0); 
+
+            if (moveForward) { direction.z -= 1; }
+            if (moveBackward) { direction.z += 1; }
+            if (moveLeft) { direction.x -= 1; }
+            if (moveRight) { direction.x += 1; }
+
+            direction.x += thumbstickVector.x;
+            direction.z += thumbstickVector.y; 
+
+            isMovingHorizontally = (direction.x !== 0 || direction.z !== 0);
+
+            if (direction.lengthSq() > 0) { 
+                direction.normalize();
+                if (isShiftLockActive) {
+                    direction.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotation.y); 
+                } else {
+                    direction.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotation.y); 
+                }
+            }
+            
+
+            horizontalVelocityX = direction.x * speed;
+            horizontalVelocityZ = direction.z * speed;
+
+            if (isShiftLockActive) {
+                character.rotation.y = rotation.y; 
+            } else {
+                if (direction.x !== 0 || direction.z !== 0) {
+                    const targetRotation = Math.atan2(-direction.x, -direction.z);
+                    let rotationDiff = targetRotation - character.rotation.y;
+                    if (rotationDiff > Math.PI) rotationDiff -= Math.PI * 2;
+                    if (rotationDiff < -Math.PI) rotationDiff += Math.PI * 2;
+                    character.rotation.y += rotationDiff * rotationSpeed;
+                }
+            }
+
+            if (jump && isOnGround && !isFalling && !isRespawning) { 
+                velocity.y = 15; 
+                isJumping = true;
+                isOnGround = false; 
+                if (jumpSound) {
+                    playSound(jumpSound, false, 0.5);
+                }
+                if (animationActions.jump) {
+                    fadeToAnimation('jump', 0.1); 
+                } 
+                jump = false; 
+            }
+
+            if (!isFalling) { 
+                if (isJumping) {
+                } else if (isMovingHorizontally) {
+                    fadeToAnimation('walk', 0.2); 
+                } else {
+                    fadeToAnimation('idle', 0.2); 
+                }
+            } else {
+                if (currentActionName !== 'idle' && animationActions.idle) {
+                    fadeToAnimation('idle', 0.2);
+                }
+            }
+
+            const shouldPlayWalkSound = walkSoundBuffer && !isJumping && !isFalling && isOnGround && isMovingHorizontally;
+            const shouldStopWalkSound = (!isMovingHorizontally || isJumping || isFalling || !isOnGround);
+
+            if (shouldPlayWalkSound && !isWalkSoundPlaying) {
+                const newWalkSoundSource = playSound(walkSoundBuffer, true, 0.7, 1.5);
+                if (newWalkSoundSource) {
+                    walkSoundSource = newWalkSoundSource;
+                    isWalkSoundPlaying = true;
+                } else {
+                    isWalkSoundPlaying = false; 
+                }
+            } else if (shouldStopWalkSound && isWalkSoundPlaying) {
+                stopSound(walkSoundSource);
+                walkSoundSource = null;
+                isWalkSoundPlaying = false;
+            }
+
+            character.position.x += horizontalVelocityX * delta;
+            character.position.z += horizontalVelocityZ * delta;
+            character.position.y += velocity.y * delta; 
+
+            if (currentChatBubble) {
+                updateChatBubblePosition();
+                if (performance.now() > currentChatBubble.expirationTime) {
+                    document.getElementById('gameContainer').removeChild(currentChatBubble.element);
+                    currentChatBubble = null;
+                }
+            }
+
+            let shouldStartFallingToDeath = false;
+            const isBelowWorldThreshold = character.position.y < -50; 
+
+            if (!isFalling && !isRespawning) {
+                if (isBelowWorldThreshold) { 
+                    shouldStartFallingToDeath = true;
+                }
+            }
+
+            if (shouldStartFallingToDeath) {
+                isFalling = true;
+                fallStartTime = currentTime;
+                if (mixer && animationActions.idle) fadeToAnimation('idle', 0);
+                moveForward = moveBackward = moveLeft = moveRight = false; 
+                thumbstickVector.set(0,0); 
+                isMovingHorizontally = false; 
+                horizontalVelocityX = 0; 
+                horizontalVelocityZ = 0; 
+            }
+
+            if (!isFalling) {
+                checkBlockCollisions(); 
+            }
+
+            if (isRespawning) {
+                if (performance.now() - respawnStartTime >= RESPAWN_COOLDOWN) {
+                    character.position.set(0, 1.5, 15); 
+                    character.visible = true;
+                    if (characterModel) characterModel.visible = true;
+                    document.getElementById('healthBar').style.backgroundColor = '#00FF00'; 
+                    document.getElementById('healthBar').style.width = '100%'; 
+                    velocity.y = 0; 
+                    isFalling = false; 
+                    isJumping = false; 
+                    isOnGround = true; 
+                    isRespawning = false; 
+                    horizontalVelocityX = 0; 
+                    horizontalVelocityZ = 0; 
+                    isMovingHorizontally = false; 
+
+                    if (deathSound) {
+                        playSound(deathSound, false, 1.0); 
+                    }
+                    
+                    stopSound(walkSoundSource);
+                    walkSoundSource = null;
+                    isWalkSoundPlaying = false;
+
+                    if (mixer && animationActions.idle) fadeToAnimation('idle', 0);
+
+                    toggleHomeMenu(); 
+                }
+            } else if (isFalling) { 
+                 document.getElementById('healthBar').style.backgroundColor = '#000000'; 
+                 document.getElementById('healthBar').style.width = '0%'; 
+                 if (currentTime - fallStartTime >= FALL_DURATION) {
+                    isRespawning = true;
+                    respawnStartTime = performance.now(); 
+                    character.visible = false; 
+                    if (characterModel) characterModel.visible = false;
+                    if (deathSound) {
+                        playSound(deathSound, false, 1.0); 
+                    }
+                    
+                    stopSound(walkSoundSource);
+                    walkSoundSource = null;
+                    isWalkSoundPlaying = false;
+
+                    if (mixer && animationActions.idle) fadeToAnimation('idle', 0);
+
+                    toggleHomeMenu(); 
+                }
+            }
+
+            if (characterModel && characterModel.position.y !== 0) {
+                characterModel.position.y = 0; 
+            }
+
+            updateCameraPosition();
+            renderer.render(scene, camera);
+        }
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+        function toggleHelpBox() {
+            const helpBox = document.getElementById('helpBox');
+            helpBox.style.display = helpBox.style.display === 'none' ? 'block' : 'none';
+            updateMenuBackgroundOverlay(); 
+        }
+
+        function resetCharacter() {
+            character.position.set(0, 1.5, 15); 
+            character.visible = true;
+            if (characterModel) characterModel.visible = true;
+
+            document.getElementById('healthBar').style.backgroundColor = '#00FF00'; 
+            document.getElementById('healthBar').style.width = '100%'; 
+
+            velocity.y = 0; 
+            isJumping = false; 
+            isOnGround = true; 
+            isFalling = false; 
+            isRespawning = false; 
+            horizontalVelocityX = 0; 
+            horizontalVelocityZ = 0; 
+            isMovingHorizontally = false; 
+
+            moveForward = moveBackward = moveLeft = moveRight = false; 
+            thumbstickVector.set(0,0); 
+
+            if (deathSound) {
+                playSound(deathSound, false, 1.0); 
+            }
+            
+            stopSound(walkSoundSource);
+            walkSoundSource = null;
+            isWalkSoundPlaying = false;
+
+            if (mixer && animationActions.idle) fadeToAnimation('idle', 0);
+
+            toggleHomeMenu(); 
+        }
+
+        function initializeHomeMenu() {
+            const homeMenuIcon = document.getElementById('homeMenuIcon');
+            const homeMenuOverlay = document.getElementById('homeMenuOverlay');
+            const leaveGameBtn = document.getElementById('leaveGameBtn');
+            const settingsBtn = document.getElementById('settingsBtn');
+            const helpBtn = document.getElementById('helpBtn');
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            const resumeGameBtn = document.getElementById('resumeGameBtn');
+            const resetCharacterBtn = document.getElementById('resetCharacterBtn'); 
+
+            homeMenuIcon.addEventListener('click', toggleHomeMenu); 
+            if (isTouchDevice) {
+                homeMenuIcon.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    toggleHomeMenu();
+                });
+            }
+
+            resumeGameBtn.addEventListener('click', toggleHomeMenu);
+            if (isTouchDevice) {
+                resumeGameBtn.addEventListener('touchstart', (e) => { e.preventDefault(); toggleHomeMenu(); });
+            }
+
+            leaveGameBtn.addEventListener('click', () => {
+                window.location.href = 'https://blingo.neocities.org/';
+            });
+            if (isTouchDevice) {
+                leaveGameBtn.addEventListener('touchstart', (e) => { e.preventDefault(); window.location.href = 'https://blingo.neocities.org/'; });
+            }
+
+            settingsBtn.addEventListener('click', () => {
+                document.getElementById('homeMenuOverlay').style.display = 'none'; 
+                document.getElementById('homeMenuOverlay').classList.remove('open', 'closing');
+                document.getElementById('homeMenuIcon').style.backgroundImage = "url('Hamburger@2x.png')"; 
+                
+                document.getElementById('helpBox').style.display = 'none'; 
+                document.getElementById('chatBar').style.display = 'none'; 
+                document.getElementById('chatMessages').style.display = 'none';
+                document.getElementById('chatButton').style.backgroundImage = "url('Chat@2x.png')"; 
+                document.getElementById('inventoryOverlay').style.display = 'none'; 
+                document.getElementById('inventoryButton').style.backgroundImage = "url('inventoryOff@2x.png')"; 
+                document.getElementById('tycoonPanelOverlay').style.display = 'none'; 
+
+                document.getElementById('settingsOverlay').style.display = 'flex';
+                updateMenuBackgroundOverlay(); 
+            });
+            if (isTouchDevice) {
+                settingsBtn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    document.getElementById('homeMenuOverlay').style.display = 'none';
+                    document.getElementById('homeMenuOverlay').classList.remove('open', 'closing');
+                    document.getElementById('homeMenuIcon').style.backgroundImage = "url('Hamburger@2x.png')";
+                    document.getElementById('helpBox').style.display = 'none';
+                    document.getElementById('chatBar').style.display = 'none';
+                    document.getElementById('chatMessages').style.display = 'none';
+                    document.getElementById('chatButton').style.backgroundImage = "url('Chat@2x.png')";
+                    document.getElementById('inventoryOverlay').style.display = 'none';
+                    document.getElementById('inventoryButton').style.backgroundImage = "url('inventoryOff@2x.png')";
+                    document.getElementById('tycoonPanelOverlay').style.display = 'none'; 
+
+                    document.getElementById('settingsOverlay').style.display = 'flex';
+                    updateMenuBackgroundOverlay();
+                });
+            }
+
+            helpBtn.addEventListener('click', () => {
+                document.getElementById('homeMenuOverlay').style.display = 'none'; 
+                document.getElementById('homeMenuOverlay').classList.remove('open', 'closing');
+                document.getElementById('homeMenuIcon').style.backgroundImage = "url('Hamburger@2x.png')"; 
+                document.getElementById('settingsOverlay').style.display = 'none'; 
+                document.getElementById('chatBar').style.display = 'none'; 
+                document.getElementById('chatMessages').style.display = 'none';
+                document.getElementById('chatButton').style.backgroundImage = "url('Chat@2x.png')"; 
+                document.getElementById('inventoryOverlay').style.display = 'none'; 
+                document.getElementById('inventoryButton').style.backgroundImage = "url('inventoryOff@2x.png')"; 
+                document.getElementById('tycoonPanelOverlay').style.display = 'none'; 
+
+                document.getElementById('helpBox').style.display = 'block';
+                updateMenuBackgroundOverlay(); 
+            });
+            if (isTouchDevice) {
+                helpBtn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    document.getElementById('homeMenuOverlay').style.display = 'none';
+                    document.getElementById('homeMenuOverlay').classList.remove('open', 'closing');
+                    document.getElementById('homeMenuIcon').style.backgroundImage = "url('Hamburger@2x.png')";
+                    document.getElementById('settingsOverlay').style.display = 'none';
+                    document.getElementById('chatBar').style.display = 'none';
+                    document.getElementById('chatMessages').style.display = 'none';
+                    document.getElementById('chatButton').style.backgroundImage = "url('Chat@2x.png')";
+                    document.getElementById('inventoryOverlay').style.display = 'none';
+                    document.getElementById('inventoryButton').style.backgroundImage = "url('inventoryOff@2x.png')";
+                    document.getElementById('tycoonPanelOverlay').style.display = 'none'; 
+
+                    document.getElementById('helpBox').style.display = 'block';
+                    updateMenuBackgroundOverlay();
+                });
+            }
+
+            fullscreenBtn.addEventListener('click', () => {
+                toggleFullscreen(); 
+                toggleHomeMenu(); 
+            });
+            if (isTouchDevice) {
+                fullscreenBtn.addEventListener('touchstart', (e) => { e.preventDefault(); toggleFullscreen(); toggleHomeMenu(); });
+            }
+
+            resetCharacterBtn.addEventListener('click', resetCharacter);
+            if (isTouchDevice) {
+                resetCharacterBtn.addEventListener('touchstart', (e) => { e.preventDefault(); resetCharacter(); });
+            }
+        }
+
+        function updateMenuBackgroundOverlay() {
+            const homeMenuOverlay = document.getElementById('homeMenuOverlay');
+            const settingsOverlay = document.getElementById('settingsOverlay');
+            const helpBox = document.getElementById('helpBox');
+            const inventoryOverlay = document.getElementById('inventoryOverlay'); 
+            const tycoonPanelOverlay = document.getElementById('tycoonPanelOverlay'); 
+            const menuBackgroundOverlay = document.getElementById('menuBackgroundOverlay');
+
+            if (homeMenuOverlay.style.display === 'flex' || 
+                settingsOverlay.style.display === 'flex' || 
+                helpBox.style.display === 'block' ||
+                inventoryOverlay.style.display === 'flex' || 
+                tycoonPanelOverlay.style.display === 'flex') { 
+                menuBackgroundOverlay.style.display = 'block';
+            } else {
+                menuBackgroundOverlay.style.display = 'none';
+            }
+        }
+
+        function toggleHomeMenu() {
+            const homeMenuOverlay = document.getElementById('homeMenuOverlay');
+            const homeMenuIcon = document.getElementById('homeMenuIcon');
+            const inventoryOverlay = document.getElementById('inventoryOverlay'); 
+            const settingsOverlay = document.getElementById('settingsOverlay');
+            const helpBox = document.getElementById('helpBox');
+            const chatBar = document.getElementById('chatBar');
+            const chatMessagesDiv = document.getElementById('chatMessages');
+            const chatButton = document.getElementById('chatButton');
+            const inventoryButton = document.getElementById('inventoryButton');
+            const tycoonPanelOverlay = document.getElementById('tycoonPanelOverlay'); 
+
+            if (homeMenuOverlay.classList.contains('open')) {
+                homeMenuOverlay.classList.remove('open');
+                homeMenuOverlay.classList.add('closing');
+                homeMenuIcon.style.backgroundImage = "url('Hamburger@2x.png')"; 
+                
+                setTimeout(() => {
+                    homeMenuOverlay.classList.remove('closing');
+                    homeMenuOverlay.style.display = 'none';
+                    updateMenuBackgroundOverlay(); 
+                }, 200); 
+            } else {
+                settingsOverlay.style.display = 'none';
+                helpBox.style.display = 'none';
+                chatBar.style.display = 'none';
+                chatMessagesDiv.style.display = 'none';
+                chatButton.style.backgroundImage = "url('Chat@2x.png')"; 
+                inventoryOverlay.style.display = 'none'; 
+                inventoryButton.style.backgroundImage = "url('inventoryOff@2x.png')"; 
+                tycoonPanelOverlay.style.display = 'none'; 
+
+                homeMenuOverlay.style.display = 'flex';
+                homeMenuOverlay.classList.add('open');
+                updateMenuBackgroundOverlay(); 
+                homeMenuIcon.style.backgroundImage = "url('HamburgerDown@2x.png')"; 
+            }
+        }
+
+        function applyResolutionScale(scale) {
+            currentResolutionScale = parseFloat(scale); 
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio * currentResolutionScale); 
+            camera.aspect = window.innerWidth / window.innerHeight; 
+            camera.updateProjectionMatrix();
+        }
+
+        function initializeSettingsUI() {
+            const settingsOverlay = document.getElementById('settingsOverlay');
+            const closeSettingsMenuBtn = document.getElementById('closeSettingsMenu');
+            const resolutionScaleSelect = document.getElementById('resolutionScale');
+            const shiftLockToggle = document.getElementById('shiftLockToggle');
+
+            closeSettingsMenuBtn.addEventListener('click', () => {
+                settingsOverlay.style.display = 'none';
+                updateMenuBackgroundOverlay(); 
+            });
+            if (isTouchDevice) {
+                closeSettingsMenuBtn.addEventListener('touchstart', (e) => { e.preventDefault(); settingsOverlay.style.display = 'none'; updateMenuBackgroundOverlay(); }); 
+            }
+
+            resolutionScaleSelect.addEventListener('change', (event) => {
+                applyResolutionScale(event.target.value);
+            });
+
+            shiftLockToggle.addEventListener('change', (event) => {
+                isShiftLockEnabled = event.target.value === 'on';
+                if (!isShiftLockEnabled && isShiftLockActive) {
+                    isShiftLockActive = false;
+                    updateCursor();
+                }
+            });
+
+            resolutionScaleSelect.value = currentResolutionScale.toString();
+            shiftLockToggle.value = isShiftLockEnabled ? 'on' : 'off';
+        }
+
+        function initializeChatUI() {
+            const chatBar = document.getElementById('chatBar');
+            const chatMessagesDiv = document.getElementById('chatMessages');
+            const chatButton = document.getElementById('chatButton'); 
+
+            chatButton.addEventListener('click', toggleChatUI);
+            if (isTouchDevice) {
+                chatButton.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    toggleChatUI();
+                });
+            }
+
+            chatBar.addEventListener('focus', () => {
+                isChatting = true;
+            });
+
+            chatBar.addEventListener('blur', () => {
+                isChatting = false;
+            });
+
+            chatBar.addEventListener('keypress', event => {
+                if (event.key === 'Enter' && chatBar.value.trim()) {
+                    const message = chatBar.value.trim();
+                    addChatMessage(`${username}: ${message}`);
+                    chatBar.value = '';
+                }
+            });
+        }
+
+        function toggleChatUI() {
+            const chatBar = document.getElementById('chatBar');
+            const chatMessagesDiv = document.getElementById('chatMessages');
+            const chatButton = document.getElementById('chatButton');
+            const homeMenuOverlay = document.getElementById('homeMenuOverlay');
+            const settingsOverlay = document.getElementById('settingsOverlay');
+            const helpBox = document.getElementById('helpBox');
+            const inventoryOverlay = document.getElementById('inventoryOverlay'); 
+            const homeMenuIcon = document.getElementById('homeMenuIcon'); 
+            const inventoryButton = document.getElementById('inventoryButton'); 
+            const tycoonPanelOverlay = document.getElementById('tycoonPanelOverlay'); 
+
+            if (chatBar.style.display === 'block') {
+                chatBar.style.display = 'none';
+                chatMessagesDiv.style.display = 'none';
+                isChatting = false;
+                chatBar.blur(); 
+                chatButton.style.backgroundImage = "url('Chat@2x.png')"; 
+                updateMenuBackgroundOverlay(); 
+            } else {
+                homeMenuOverlay.style.display = 'none';
+                homeMenuOverlay.classList.remove('open', 'closing');
+                homeMenuIcon.style.backgroundImage = "url('Hamburger@2x.png')"; 
+
+                settingsOverlay.style.display = 'none';
+                helpBox.style.display = 'none';
+                inventoryOverlay.style.display = 'none'; 
+                inventoryButton.style.backgroundImage = "url('inventoryOff@2x.png')"; 
+                tycoonPanelOverlay.style.display = 'none'; 
+
+                chatBar.style.display = 'block';
+                chatMessagesDiv.style.display = 'flex'; 
+                chatBar.focus();
+                isChatting = true;
+                chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
+                chatButton.style.backgroundImage = "url('chatOn@2x.png')"; 
+                updateMenuBackgroundOverlay(); 
+            }
+        }
+        
+        function displayChatBubble(message) {
+            if (currentChatBubble) {
+                document.getElementById('gameContainer').removeChild(currentChatBubble.element);
+                currentChatBubble = null;
+            }
+
+            const bubbleContainer = document.createElement('div');
+            bubbleContainer.id = 'chatBubbleContainer'; 
+            const bubbleText = document.createElement('div');
+            bubbleText.className = 'chatBubble';
+            bubbleText.textContent = message;
+
+            bubbleContainer.appendChild(bubbleText);
+            document.getElementById('gameContainer').appendChild(bubbleContainer);
+
+            currentChatBubble = {
+                element: bubbleContainer,
+                expirationTime: performance.now() + CHAT_BUBBLE_DURATION,
+            };
+
+            updateChatBubblePosition();
+        }
+
+        function updateChatBubblePosition() {
+            if (!currentChatBubble || !character || !camera) return;
+
+            const headPosition = character.position.clone().add(new THREE.Vector3(0, CHARACTER_HEIGHT + 0.5, 0));
+
+            headPosition.project(camera);
+
+            const x = (headPosition.x * 0.5 + 0.5) * window.innerWidth;
+            const y = (-headPosition.y * 0.5 + 0.5) * window.innerHeight;
+
+            currentChatBubble.element.style.left = `${x}px`;
+            currentChatBubble.element.style.top = `${y}px`;
+            currentChatBubble.element.style.transform = `translate(-50%, -100%)`; 
+        }
+
+        function addChatMessage(message) {
+            chatMessages.push(message);
+            if (chatMessages.length > 6) { 
+                chatMessages = chatMessages.slice(-6);
+            }
+            const chatMessagesDiv = document.getElementById('chatMessages');
+            chatMessagesDiv.innerHTML = '';
+            const playerNameDiv = document.getElementById('playerNameTopbar');
+            const playerColor = playerNameDiv ? playerNameDiv.style.color : 'white'; 
+            
+            for (const msg of chatMessages) {
+                const messageElement = document.createElement('div');
+                messageElement.className = 'chatMessage';
+                
+                if (msg.startsWith(`${username}:`)) {
+                    const parts = msg.split(':');
+                    messageElement.innerHTML = `<span style="color: white; text-shadow: none;">• </span><span style="color: ${parts[0].trim() === username ? playerColor : 'white'}; text-shadow: none;">${parts[0]}</span>:${parts[1]}`;
+                    
+                    if (parts[0].trim() === username) {
+                        displayChatBubble(parts[1].trim()); 
+                    }
+                } else {
+                    messageElement.textContent = msg;
+                    messageElement.style.color = 'white'; 
+                }
+                chatMessagesDiv.appendChild(messageElement);
+            }
+            chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight; 
+        }
+
+        function initializeInventoryUI() {
+            const inventoryButton = document.getElementById('inventoryButton');
+            const inventoryOverlay = document.getElementById('inventoryOverlay');
+            const closeInventoryMenuBtn = document.getElementById('closeInventoryMenu');
+            const menuBackgroundOverlay = document.getElementById('menuBackgroundOverlay');
+
+            inventoryButton.addEventListener('click', toggleInventoryMenu);
+            if (isTouchDevice) {
+                inventoryButton.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    toggleInventoryMenu();
+                });
+            }
+
+            closeInventoryMenuBtn.addEventListener('click', toggleInventoryMenu);
+            if (isTouchDevice) {
+                closeInventoryMenuBtn.addEventListener('touchstart', (e) => { e.preventDefault(); toggleInventoryMenu(); });
+            }
+        }
+
+        function toggleInventoryMenu() {
+            const inventoryOverlay = document.getElementById('inventoryOverlay');
+            const inventoryButton = document.getElementById('inventoryButton');
+            const homeMenuOverlay = document.getElementById('homeMenuOverlay');
+            const settingsOverlay = document.getElementById('settingsOverlay');
+            const helpBox = document.getElementById('helpBox');
+            const chatBar = document.getElementById('chatBar');
+            const chatMessagesDiv = document.getElementById('chatMessages');
+            const homeMenuIcon = document.getElementById('homeMenuIcon');
+            const chatButton = document.getElementById('chatButton');
+            const tycoonPanelOverlay = document.getElementById('tycoonPanelOverlay'); 
+
+            if (inventoryOverlay.style.display === 'flex') { 
+                inventoryOverlay.style.display = 'none';
+                inventoryButton.style.backgroundImage = "url('inventoryOff@2x.png')"; 
+                updateMenuBackgroundOverlay(); 
+            } else { 
+                homeMenuOverlay.style.display = 'none';
+                homeMenuOverlay.classList.remove('open', 'closing');
+                homeMenuIcon.style.backgroundImage = "url('Hamburger@2x.png')";
+
+                const settingsOverlay = document.getElementById('settingsOverlay');
+                settingsOverlay.style.display = 'none';
+
+                const helpBox = document.getElementById('helpBox');
+                helpBox.style.display = 'none';
+
+                chatBar.style.display = 'none';
+                chatMessagesDiv.style.display = 'none';
+                chatButton.style.backgroundImage = "url('Chat@2x.png')";
+
+                inventoryOverlay.style.display = 'flex';
+                inventoryButton.style.backgroundImage = "url('inventoryOn@2x.png')";
+                
+                updateMenuBackgroundOverlay(); 
+            }
+        }
+
+
+        function updateHotbarUI() {
+            for (let i = 1; i <= HOTBAR_SLOTS; i++) {
+                const slot = document.getElementById(`hotbarSlot-${i}`);
+                if (slot) {
+                    if (i === activeHotbarSlot) {
+                        slot.classList.add('active');
+                    } else {
+                        slot.classList.remove('active');
+                    }
+                }
+            }
+
+            if (activeHotbarSlot > 0 && activeHotbarSlot <= hotbarItems.length) {
+                currentActiveTool = hotbarItems[activeHotbarSlot - 1]; 
+            } else {
+                currentActiveTool = null; 
+            }
+
+            // Removed heldBlock visibility logic
+
+            if (currentActiveTool && currentActiveTool.type === 'tycoon') {
+                toggleTycoonPanel(true); 
+            } else {
+                toggleTycoonPanel(false); 
+            }
+
+            updateCursor(); 
+        }
+
+        function initializeHotbarUI() {
+            const hotbarContainer = document.getElementById('hotbarContainer');
+            hotbarContainer.innerHTML = ''; 
+
+            hotbarItems.forEach((item, index) => {
+                const slotNumber = index + 1; 
+                const slot = document.createElement('div');
+                slot.className = 'hotbar-slot';
+                slot.id = `hotbarSlot-${slotNumber}`;
+                slot.innerHTML = `<span class="key-number">${slotNumber}</span>`;
+
+                const toolImage = document.createElement('img');
+                toolImage.src = item.icon; 
+                toolImage.className = 'tool-icon';
+                slot.appendChild(toolImage);
+                
+                slot.addEventListener('click', () => {
+                    if (activeHotbarSlot === slotNumber) {
+                        activeHotbarSlot = 0; 
+                    } else {
+                        activeHotbarSlot = slotNumber; 
+                    }
+                    updateHotbarUI();
+                });
+                if (isTouchDevice) {
+                    slot.addEventListener('touchstart', (e) => {
+                        e.preventDefault(); 
+                        if (activeHotbarSlot === slotNumber) {
+                            activeHotbarSlot = 0; 
+                        } else {
+                            activeHotbarSlot = slotNumber; 
+                        }
+                        updateHotbarUI();
+                    });
+                }
+                hotbarContainer.appendChild(slot);
+            });
+            
+            if (hotbarItems.length > 0) {
+                activeHotbarSlot = 0; 
+            } else {
+                activeHotbarSlot = 0; 
+            }
+
+            updateHotbarUI(); 
+        }
+        
+        function updateCursor() {
+            const customCursor = document.getElementById('customCursor');
+            if (isTouchDevice) {
+                customCursor.style.display = 'none'; 
+                return;
+            } else {
+                customCursor.style.display = 'block'; 
+            }
+
+            let cursorImage = '/cursor-1.png'; 
+            let cursorWidth = '27px';
+            let cursorHeight = '27px';
+
+            if (isShiftLockActive) {
+                cursorImage = shiftLockCursorImage; 
+                cursorWidth = '32px';
+                cursorHeight = '32px';
+                customCursor.style.left = '50%';
+                customCursor.style.top = '50%';
+            } else {
+                customCursor.style.left = ''; 
+                customCursor.style.top = ''; 
+
+                if (currentActiveTool) {
+                    if (currentActiveTool.type === 'tycoon') { 
+                        cursorImage = '/cursor-1.png'; 
+                        cursorWidth = '27px';
+                        cursorHeight = '27px';
+                    }
+                }
+            }
+            
+            customCursor.style.backgroundImage = `url('${cursorImage}')`;
+            customCursor.style.width = cursorWidth;
+            customCursor.style.height = cursorHeight;
+        }
+
+        function initializeMobileControls() {
+            const mobileControls = document.getElementById('mobileControls');
+            const thumbstickContainer = document.getElementById('thumbstickContainer');
+            const thumbstick = document.getElementById('thumbstick');
+            const jumpButton = document.getElementById('jumpButton');
+
+            if (!isTouchDevice) {
+                mobileControls.style.display = 'none';
+                return;
+            } else {
+                mobileControls.style.display = 'block';
+            }
+
+            const rect = thumbstickContainer.getBoundingClientRect();
+            thumbstickCenter = {
+                x: rect.left + rect.width / 2,
+                y: rect.top + rect.height / 2
+            };
+            thumbstickRadius = rect.width / 2; 
+
+            thumbstickContainer.addEventListener('touchstart', handleThumbstickStart, { passive: false });
+            thumbstickContainer.addEventListener('touchmove', handleThumbstickMove, { passive: false });
+            thumbstickContainer.addEventListener('touchend', handleThumbstickEnd, { passive: false });
+            thumbstickContainer.addEventListener('touchcancel', handleThumbstickEnd, { passive: false });
+
+            jumpButton.addEventListener('click', handleJumpButton);
+            jumpButton.addEventListener('touchstart', (e) => {
+                e.preventDefault(); 
+                handleJumpButton();
+            });
+        }
+
+        function handleThumbstickStart(e) {
+            e.preventDefault(); 
+            const touch = e.touches[0];
+            thumbstickTouched = true;
+            updateThumbstickPosition(touch.clientX, touch.clientY);
+        }
+
+        function handleThumbstickMove(e) {
+            e.preventDefault(); 
+            if (!isCameraDragging) return;
+
+            const touch = e.touches[0];
+            updateThumbstickPosition(touch.clientX, touch.clientY);
+        }
+
+        function handleThumbstickEnd(e) {
+            e.preventDefault(); 
+            thumbstickTouched = false;
+            thumbstickVector.set(0, 0); 
+            resetThumbstickPosition();
+        }
+
+        function updateThumbstickPosition(currentTouchX, currentTouchY) {
+            const thumbstick = document.getElementById('thumbstick');
+            const thumbstickContainer = document.getElementById('thumbstickContainer');
+            const containerRect = thumbstickContainer.getBoundingClientRect();
+            
+            const rawDx = currentTouchX - thumbstickCenter.x;
+            const rawDy = currentTouchY - thumbstickCenter.y;
+
+            const rawDistance = Math.sqrt(rawDx * rawDx + rawDy * rawDy);
+
+            let clampedDx = rawDx;
+            let clampedDy = rawDy;
+            if (rawDistance > thumbstickRadius) {
+                clampedDx = rawDx * thumbstickRadius / rawDistance;
+                clampedDy = rawDy * thumbstickRadius / rawDistance;
+            }
+
+            const visualX = (containerRect.width / 2) + clampedDx;
+            const visualY = (containerRect.height / 2) + clampedDy;
+
+            thumbstick.style.left = `${visualX}px`;
+            thumbstick.style.top = `${visualY}px`;
+
+            thumbstickVector.x = clampedDx / thumbstickRadius;
+            thumbstickVector.y = clampedDy / thumbstickRadius; 
+        }
+
+        function handleGameContainerTouchStart(e) {
+            const touchX = e.touches[0].clientX;
+            const touchY = e.touches[0].clientY;
+
+            const thumbstickRect = document.getElementById('thumbstickContainer').getBoundingClientRect();
+            const jumpButtonRect = document.getElementById('jumpButton').getBoundingClientRect();
+            const homeMenuIconRect = document.getElementById('homeMenuIcon').getBoundingClientRect();
+            const chatButtonRect = document.getElementById('chatButton').getBoundingClientRect(); 
+            const inventoryButtonRect = document.getElementById('inventoryButton').getBoundingClientRect(); 
+            const chatBarRect = document.getElementById('chatBar').getBoundingClientRect();
+            const chatMessagesRect = document.getElementById('chatMessages').getBoundingClientRect(); 
+            const hotbarSlots = document.querySelectorAll('.hotbar-slot');
+            const topbarRect = document.getElementById('topbar').getBoundingClientRect();
+            const moneyDisplayRect = document.getElementById('moneyDisplay').getBoundingClientRect(); 
+            
+            const homeMenuOverlay = document.getElementById('homeMenuOverlay');
+            const settingsOverlay = document.getElementById('settingsOverlay');
+            const helpBox = document.getElementById('helpBox');
+            const inventoryOverlay = document.getElementById('inventoryOverlay'); 
+            const tycoonPanelOverlay = document.getElementById('tycoonPanelOverlay'); 
+
+
+            const isTouchOnUI = 
+                (touchX >= thumbstickRect.left && touchX <= thumbstickRect.right && touchY >= thumbstickRect.top && touchY <= thumbstickRect.bottom) ||
+                (touchX >= jumpButtonRect.left && touchX <= jumpButtonRect.right && touchY >= jumpButtonRect.top && touchY <= jumpButtonRect.bottom) ||
+                (touchX >= homeMenuIconRect.left && touchX <= homeMenuIconRect.right && touchY >= homeMenuIconRect.top && touchY <= homeMenuIconRect.bottom) ||
+                (touchX >= chatButtonRect.left && touchX <= chatButtonRect.right && touchY >= chatButtonRect.top && touchY <= chatButtonRect.bottom) || 
+                (touchX >= inventoryButtonRect.left && touchX <= inventoryButtonRect.right && touchY >= inventoryButtonRect.top && touchY <= inventoryButtonRect.bottom) || 
+                (chatBar.style.display === 'block' && touchX >= chatBarRect.left && touchX <= chatBarRect.right && touchY >= chatBarRect.top && touchY <= chatBarRect.bottom) || 
+                (chatMessagesDiv.style.display === 'flex' && touchX >= chatMessagesRect.left && touchX <= chatMessagesRect.right && touchY >= chatMessagesRect.top && touchY <= chatMessagesRect.bottom) || 
+                (touchX >= topbarRect.left && touchX <= topbarRect.right && touchY >= topbarRect.top && touchY <= topbarRect.bottom) || 
+                (homeMenuOverlay.style.display === 'flex' && touchX >= homeMenuOverlay.getBoundingClientRect().left && touchX <= homeMenuOverlay.getBoundingClientRect().right && touchY >= homeMenuOverlay.getBoundingClientRect().top && touchY <= homeMenuOverlay.getBoundingClientRect().bottom) ||
+                (settingsOverlay.style.display === 'flex' && touchX >= settingsOverlay.getBoundingClientRect().left && touchX <= settingsOverlay.getBoundingClientRect().right && touchY >= settingsOverlay.getBoundingClientRect().top && touchY <= settingsOverlay.getBoundingClientRect().bottom) ||
+                (helpBox.style.display === 'block' && touchX >= helpBox.getBoundingClientRect().left && touchX <= helpBox.getBoundingClientRect().right && touchY >= helpBox.getBoundingClientRect().top && touchY <= helpBox.getBoundingClientRect().bottom) ||
+                (inventoryOverlay.style.display === 'flex' && touchX >= inventoryOverlay.getBoundingClientRect().left && touchX <= inventoryOverlay.getBoundingClientRect().right && touchY >= inventoryOverlay.getBoundingClientRect().top && touchY <= inventoryOverlay.getBoundingClientRect().bottom) || 
+                (tycoonPanelOverlay.style.display === 'flex' && touchX >= tycoonPanelOverlay.getBoundingClientRect().left && touchX <= tycoonPanelOverlay.getBoundingClientRect().right && touchY >= tycoonPanelOverlay.getBoundingClientRect().top && touchY <= tycoonPanelOverlay.getBoundingClientRect().bottom) || 
+                Array.from(hotbarSlots).some(slot => {
+                    const slotRect = slot.getBoundingClientRect();
+                    return (touchX >= slotRect.left && touchX <= slotRect.right && touchY >= slotRect.top && touchY <= slotRect.bottom);
+                });
+
+            if (!isShiftLockActive && !isTouchOnUI) {
+                isCameraDragging = true;
+                lastTouchX = e.touches[0].clientX;
+                lastTouchY = e.touches[0].clientY;
+                e.preventDefault(); 
+            } else {
+                isCameraDragging = false; 
+            }
+        }
+
+        function handleGameContainerTouchMove(e) {
+            if (!isCameraDragging) return;
+            e.preventDefault(); 
+
+            const currentTouchX = e.touches[0].clientX;
+            const currentTouchY = e.touches[0].clientY;
+
+            const movementX = currentTouchX - lastTouchX;
+            const movementY = currentTouchY - lastTouchY;
+
+            rotation.y -= movementX * mouseSensitivity * 1.5; 
+            rotation.x -= movementY * mouseSensitivity * 1.5; 
+            rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, rotation.x));
+            rotation.y = normalizeAngle(rotation.y); 
+
+            lastTouchX = currentTouchX;
+            lastTouchY = currentTouchY;
+        }
+
+        function handleGameContainerTouchEnd(e) {
+            isCameraDragging = false;
+        }
+        
+        function normalizeAngle(angle) {
+            return angle % (2 * Math.PI);
+        }
+
+        // === TYCOON LOGIC ===
+        function createTycoon(targetScene) {
+            const textureLoader = new THREE.TextureLoader();
+            const redBlockTexture = textureLoader.load('red_block.png');
+            const yellowBlockTexture = textureLoader.load('yellow_block.png'); 
+            const mcdonaldsLogoTexture = textureLoader.load('mcdonalds_logo.png');
+            const greyBlockTexture = textureLoader.load('Screenshot_132.png'); 
+
+            const tycoonOffsetX = 0; 
+            const tycoonOffsetY = 0.5; 
+            const tycoonOffsetZ = 0;
+
+            const baseHeight = 1; 
+
+            const buildingWidth = 20;
+            const buildingDepth = 15;
+            const wallHeight = 8; 
+            const wallThickness = 0.5;
+            const roofThickness = 0.5;
+            const roofOverhang = 0.5; 
+            const entranceWidth = 8; 
+
+            const frontWallWidth = (buildingWidth - entranceWidth) / 2;
+            const backWindowWidth = 8;
+            const backWindowHeight = 2;
+            const frontWindowHeight = 1.5;
+            const logoWidth = 4;
+            const logoHeight = 4;
+            const logoOffsetFromWall = 0.02; 
+
+            const baseGeometry = new THREE.BoxGeometry(buildingWidth, baseHeight, buildingDepth);
+            const baseMaterial = new THREE.MeshPhongMaterial({ map: redBlockTexture });
+            const tycoonBase = new THREE.Mesh(baseGeometry, baseMaterial);
+            tycoonBase.position.set(tycoonOffsetX, tycoonOffsetY, tycoonOffsetZ); 
+            tycoonBase.receiveShadow = true;
+            tycoonBase.castShadow = true;
+            tycoonBase.name = 'tycoonBase';
+            targetScene.add(tycoonBase);
+            
+
+            const dropperGeometry = new THREE.BoxGeometry(1, 1, 1);
+            const dropperMaterial = new THREE.MeshPhongMaterial({ color: 0x888888 }); 
+            tycoonDropperMesh = new THREE.Mesh(dropperGeometry, dropperMaterial);
+            tycoonDropperMesh.position.set(tycoonOffsetX, tycoonOffsetY + (baseHeight / 2) + 0.5, tycoonOffsetZ); 
+            tycoonDropperMesh.receiveShadow = true;
+            tycoonDropperMesh.castShadow = true;
+            tycoonDropperMesh.name = 'tycoonDropper';
+            targetScene.add(tycoonDropperMesh);
+
+            const wallMaterial = new THREE.MeshPhongMaterial({ map: yellowBlockTexture }); 
+            
+            const wallYCenter = tycoonOffsetY + (baseHeight / 2) + (wallHeight / 2); 
+
+            const wall1 = new THREE.Mesh(new THREE.BoxGeometry(buildingWidth, wallHeight, wallThickness), wallMaterial); 
+            wall1.position.set(tycoonOffsetX, wallYCenter, tycoonOffsetZ - (buildingDepth / 2) + (wallThickness / 2));
+            tycoonParts.walls.meshes.push(wall1);
+            scene.add(wall1);
+            
+
+            const wall2_left = new THREE.Mesh(new THREE.BoxGeometry(wallThickness, wallHeight, buildingDepth - wallThickness), wallMaterial); 
+            wall2_left.position.set(tycoonOffsetX - (buildingWidth / 2) + (wallThickness / 2), wallYCenter, tycoonOffsetZ);
+            tycoonParts.walls.meshes.push(wall2_left);
+            scene.add(wall2_left);
+            
+
+            const wall2_left2 = new THREE.Mesh(new THREE.BoxGeometry(wallThickness, wallHeight, buildingDepth - wallThickness), wallMaterial); 
+            wall2_left2.position.set(tycoonOffsetX - (buildingWidth / 2) + (wallThickness / 2) + (buildingWidth - wallThickness * 2) / 2, wallYCenter, tycoonOffsetZ);
+            tycoonParts.walls.meshes.push(wall2_left2);
+            scene.add(wall2_left2);
+            
+
+            const wall2_right = new THREE.Mesh(new THREE.BoxGeometry(wallThickness, wallHeight, buildingDepth - wallThickness), wallMaterial); 
+            wall2_right.position.set(tycoonOffsetX + (buildingWidth / 2) - (wallThickness / 2), wallYCenter, tycoonOffsetZ);
+            tycoonParts.walls.meshes.push(wall2_right);
+            scene.add(wall2_right);
+            
+
+            const wall2_right2 = new THREE.Mesh(new THREE.BoxGeometry(wallThickness, wallHeight, buildingDepth - wallThickness), wallMaterial); 
+            wall2_right2.position.set(tycoonOffsetX + (buildingWidth / 2) - (wallThickness / 2) - (buildingWidth - wallThickness * 2) / 2, wallYCenter, tycoonOffsetZ);
+            tycoonParts.walls.meshes.push(wall2_right2);
+            scene.add(wall2_right2);
+            
+
+            const wall3_front_left = new THREE.Mesh(new THREE.BoxGeometry(frontWallWidth, wallHeight, wallThickness), wallMaterial); 
+            wall3_front_left.position.set(tycoonOffsetX - (buildingWidth / 2) + (frontWallWidth / 2), wallYCenter, tycoonOffsetZ + (buildingDepth / 2) - (wallThickness / 2));
+            tycoonParts.walls.meshes.push(wall3_front_left);
+            scene.add(wall3_front_left);
+            
+
+            const wall3_front_right = new THREE.Mesh(new THREE.BoxGeometry(frontWallWidth, wallHeight, wallThickness), wallMaterial); 
+            wall3_front_right.position.set(tycoonOffsetX + (buildingWidth / 2) - (frontWallWidth / 2), wallYCenter, tycoonOffsetZ + (buildingDepth / 2) - (wallThickness / 2));
+            tycoonParts.walls.meshes.push(wall3_front_right);
+            scene.add(wall3_front_right);
+            
+
+            const roofGeometry = new THREE.BoxGeometry(buildingWidth + roofOverhang, roofThickness, buildingDepth + roofOverhang);
+            const roofMaterial = new THREE.MeshPhongMaterial({ map: redBlockTexture }); 
+            const roofMesh = new THREE.Mesh(roofGeometry, roofMaterial);
+            roofMesh.position.set(tycoonOffsetX, tycoonOffsetY + (baseHeight / 2) + wallHeight + (roofThickness / 2), tycoonOffsetZ); 
+            tycoonParts.walls.meshes.push(roofMesh); 
+            scene.add(roofMesh);
+            
+
+            const windowMaterial = new THREE.MeshPhongMaterial({ color: 0xFFFFFF, transparent: true, opacity: 0.2 }); 
+            const windowThickness = 0.1;
+
+            const window1 = new THREE.Mesh(new THREE.BoxGeometry(backWindowWidth, backWindowHeight, windowThickness), windowMaterial); 
+            window1.position.set(tycoonOffsetX, wallYCenter, tycoonOffsetZ - (buildingDepth / 2) + (windowThickness / 2) + 0.01); 
+            tycoonParts.windows.meshes.push(window1);
+            scene.add(window1);
+
+            const window2 = new THREE.Mesh(new THREE.BoxGeometry(entranceWidth, frontWindowHeight, windowThickness), windowMaterial); 
+            window2.position.set(tycoonOffsetX, tycoonOffsetY + (baseHeight / 2) + wallHeight - (frontWindowHeight / 2) - 0.5, tycoonOffsetZ + (buildingDepth / 2) - (windowThickness / 2) - 0.01); 
+            tycoonParts.windows.meshes.push(window2);
+            scene.add(window2);
+            
+            const logoGeometry = new THREE.PlaneGeometry(logoWidth, logoHeight); 
+            const logoMaterial = new THREE.MeshBasicMaterial({ map: mcdonaldsLogoTexture, transparent: true, side: THREE.DoubleSide });
+            const logoMesh = new THREE.Mesh(logoGeometry, logoMaterial);
+            logoMesh.position.set(tycoonOffsetX, tycoonOffsetY + (baseHeight / 2) + wallHeight * 1.05, tycoonOffsetZ + (buildingDepth / 2) + logoOffsetFromWall); 
+            logoMesh.rotation.y = Math.PI; 
+            tycoonParts.logo.meshes.push(logoMesh);
+            scene.add(logoMesh);
+
+            const doorMaterial = new THREE.MeshPhongMaterial({ map: greyBlockTexture }); 
+            const doorWidth = 3; 
+            const doorHeight = 6;
+            const doorThickness = 0.2;
+            const doorFrameWidth = 0.5; 
+            const doorFrameHeight = doorHeight + 1; 
+            const doorHeaderHeight = 1;
+            
+            const leftDoor = new THREE.Mesh(new THREE.BoxGeometry(doorFrameWidth, doorFrameHeight, doorThickness), doorMaterial);
+            leftDoor.position.set(tycoonOffsetX - (entranceWidth / 2) + (doorFrameWidth / 2), tycoonOffsetY + (baseHeight / 2) + (doorFrameHeight / 2), tycoonOffsetZ + (buildingDepth / 2) - (wallThickness / 2));
+            tycoonParts.doors.meshes.push(leftDoor);
+            scene.add(leftDoor);
+            
+
+            const rightDoor = new THREE.Mesh(new THREE.BoxGeometry(doorFrameWidth, doorFrameHeight, doorThickness), doorMaterial);
+            rightDoor.position.set(tycoonOffsetX + (entranceWidth / 2) - (doorFrameWidth / 2), tycoonOffsetY + (baseHeight / 2) + (doorFrameHeight / 2), tycoonOffsetZ + (buildingDepth / 2) - (wallThickness / 2));
+            tycoonParts.doors.meshes.push(rightDoor);
+            scene.add(rightDoor);
+            
+
+            const doorHeader = new THREE.Mesh(new THREE.BoxGeometry(entranceWidth - doorFrameWidth, doorHeaderHeight, doorThickness), doorMaterial);
+            doorHeader.position.set(tycoonOffsetX, tycoonOffsetY + (baseHeight / 2) + doorHeight + (doorHeaderHeight / 2), tycoonOffsetZ + (buildingDepth / 2) - (wallThickness / 2));
+            tycoonParts.doors.meshes.push(doorHeader);
+            scene.add(doorHeader);
+            
+
+            const tableMaterial = new THREE.MeshPhongMaterial({ color: 0x4B371C }); 
+            const tableTopHeight = 0.1;
+            const tableLegWidth = 0.2;
+            const tableLegHeight = 2.5;
+            const tableRadius = 1.0; 
+
+            const table1 = new THREE.Mesh(new THREE.CylinderGeometry(tableRadius, tableRadius, tableTopHeight, 16), tableMaterial);
+            table1.position.set(tycoonOffsetX - 4, tycoonOffsetY + (baseHeight / 2) + tableLegHeight + (tableTopHeight / 2), tycoonOffsetZ + 3);
+            tycoonParts.tables.meshes.push(table1);
+            scene.add(table1);
+            
+            const tableLeg1 = new THREE.Mesh(new THREE.CylinderGeometry(tableLegWidth, tableLegWidth, tableLegHeight, 16), tableMaterial);
+            tableLeg1.position.set(tycoonOffsetX - 4, tycoonOffsetY + (baseHeight / 2) + (tableLegHeight / 2), tycoonOffsetZ + 3);
+            tycoonParts.tables.meshes.push(tableLeg1);
+            scene.add(tableLeg1);
+            
+
+            const table2 = new THREE.Mesh(new THREE.CylinderGeometry(tableRadius, tableRadius, tableTopHeight, 16), tableMaterial);
+            table2.position.set(tycoonOffsetX + 4, tycoonOffsetY + (baseHeight / 2) + tableLegHeight + (tableTopHeight / 2), tycoonOffsetZ + 3);
+            tycoonParts.tables.meshes.push(table2);
+            scene.add(table2);
+            
+            const tableLeg2 = new THREE.Mesh(new THREE.CylinderGeometry(tableLegWidth, tableLegWidth, tableLegHeight, 16), tableMaterial);
+            tableLeg2.position.set(tycoonOffsetX + 4, tycoonOffsetY + (baseHeight / 2) + (tableLegHeight / 2), tycoonOffsetZ + 3);
+            tycoonParts.tables.meshes.push(tableLeg2);
+            scene.add(tableLeg2);
+            
+
+            updateTycoonVisuals();
+        }
+
+        function updateMoneyDisplay() {
+            document.getElementById('moneyDisplay').textContent = `$${playerMoney}`;
+            document.getElementById('dropperLevelDisplay').textContent = tycoonParts.dropper.currentLevel;
+            document.getElementById('moneyPerDropDisplay').textContent = tycoonParts.dropper.moneyPerDrop[tycoonParts.dropper.currentLevel - 1];
+            document.getElementById('dropIntervalDisplay').textContent = (tycoonParts.dropper.dropIntervalMs[tycoonParts.dropper.currentLevel - 1] / 1000).toFixed(1);
+            
+            updateTycoonPanelUI(); 
+        }
+
+        function startDropper() {
+            if (dropperIntervalId) {
+                clearInterval(dropperIntervalId);
+            }
+            const currentDropInterval = tycoonParts.dropper.dropIntervalMs[tycoonParts.dropper.currentLevel - 1];
+            dropperIntervalId = setInterval(() => {
+                playerMoney += tycoonParts.dropper.moneyPerDrop[tycoonParts.dropper.currentLevel - 1];
+                updateMoneyDisplay();
+            }, currentDropInterval);
+        }
+
+        function upgradeDropper() {
+            const dropper = tycoonParts.dropper;
+            if (dropper.currentLevel < dropper.maxLevel) {
+                const cost = dropper.costs[dropper.currentLevel - 1]; 
+                if (playerMoney >= cost) {
+                    playerMoney -= cost;
+                    dropper.currentLevel++;
+                    
+                    if (tycoonDropperMesh) {
+                        tycoonDropperMesh.scale.set(
+                            1 + dropper.currentLevel * 0.1, 
+                            1 + dropper.currentLevel * 0.1, 
+                            1 + dropper.currentLevel * 0.1
+                        ); 
+                        tycoonDropperMesh.material.color.setHex(Math.random() * 0xffffff); 
+                    }
+
+                    updateMoneyDisplay();
+                    startDropper(); 
+                    addChatMessage(`System: Dropper upgraded to Level ${dropper.currentLevel}!`);
+                } else {
+                    addChatMessage(`System: Not enough money to upgrade dropper! Need $${cost}`);
+                }
+            } else {
+                addChatMessage(`System: Dropper is already at max level!`);
+            }
+        }
+
+        function upgradeTycoonPart(partName) {
+            const part = tycoonParts[partName];
+            if (part && part.currentLevel < part.maxLevel) {
+                const cost = part.costs[part.currentLevel]; 
+                if (playerMoney >= cost) {
+                    playerMoney -= cost;
+                    part.currentLevel++;
+                    updateTycoonVisuals();
+                    updateMoneyDisplay();
+                    addChatMessage(`System: ${part.displayName} upgraded to Level ${part.currentLevel}!`);
+                } else {
+                    addChatMessage(`System: Not enough money to build ${part.displayName}! Need $${cost}`);
+                }
+            } else {
+                addChatMessage(`System: ${part.displayName} is already at max level!`);
+            }
+        }
+
+        function updateTycoonVisuals() {
+            const walls = tycoonParts.walls;
+            walls.meshes.forEach(mesh => mesh.visible = walls.currentLevel >= 1);
+
+            const windows = tycoonParts.windows;
+            windows.meshes[0].visible = windows.currentLevel >= 1; 
+            if (windows.meshes[1]) windows.meshes[1].visible = windows.currentLevel >= 2; 
+
+            const doors = tycoonParts.doors; 
+            doors.meshes.forEach(mesh => mesh.visible = doors.currentLevel >= 1);
+
+            const tables = tycoonParts.tables; 
+            tables.meshes.forEach(mesh => mesh.visible = tables.currentLevel >= 1);
+
+            const logo = tycoonParts.logo;
+            logo.meshes[0].visible = logo.currentLevel >= 1;
+        }
+
+        function updateTycoonPanelUI() {
+            const dropper = tycoonParts.dropper;
+            document.getElementById('dropperLevelDisplay').textContent = dropper.currentLevel;
+            document.getElementById('moneyPerDropDisplay').textContent = dropper.moneyPerDrop[dropper.currentLevel - 1];
+            document.getElementById('dropIntervalDisplay').textContent = (dropper.dropIntervalMs[dropper.currentLevel - 1] / 1000).toFixed(1);
+            
+            const upgradeDropperBtn = document.getElementById('upgradeDropperBtn');
+            const dropperUpgradeCostDisplay = document.getElementById('dropperUpgradeCostDisplay');
+
+            if (dropper.currentLevel < dropper.maxLevel) {
+                const cost = dropper.costs[dropper.currentLevel - 1];
+                dropperUpgradeCostDisplay.textContent = `$${cost}`;
+                upgradeDropperBtn.disabled = playerMoney < cost;
+                upgradeDropperBtn.classList.remove('max-level');
+                upgradeDropperBtn.textContent = "Upgrade Dropper";
+            } else {
+                dropperUpgradeCostDisplay.textContent = `MAX`;
+                upgradeDropperBtn.disabled = true;
+                upgradeDropperBtn.classList.add('max-level');
+                upgradeDropperBtn.textContent = "Max Level!";
+            }
+            
+            ['walls', 'windows', 'doors', 'tables', 'logo'].forEach(partName => { 
+                const part = tycoonParts[partName];
+                const levelDisplay = document.getElementById(`${partName}LevelDisplay`);
+                const upgradeButton = document.getElementById(`upgrade${partName.charAt(0).toUpperCase() + partName.slice(1)}Btn`);
+
+                if (levelDisplay) levelDisplay.textContent = part.currentLevel;
+
+                if (part.currentLevel < part.maxLevel) {
+                    const cost = part.costs[part.currentLevel]; 
+                    upgradeButton.textContent = `Upgrade ($${cost})`;
+                    upgradeButton.disabled = playerMoney < cost;
+                    upgradeButton.classList.remove('max-level');
+                } else {
+                    upgradeButton.textContent = `Max Level!`;
+                    upgradeButton.disabled = true;
+                    upgradeButton.classList.add('max-level');
+                }
+            });
+        }
+
+        function initializeTycoonUI() {
+            const tycoonPanelOverlay = document.getElementById('tycoonPanelOverlay');
+            const closeTycoonPanelBtn = document.getElementById('closeTycoonPanel');
+            const upgradeDropperBtn = document.getElementById('upgradeDropperBtn');
+
+            closeTycoonPanelBtn.addEventListener('click', () => toggleTycoonPanel(false));
+            if (isTouchDevice) {
+                closeTycoonPanelBtn.addEventListener('touchstart', (e) => { e.preventDefault(); toggleTycoonPanel(false); });
+            }
+
+            upgradeDropperBtn.addEventListener('click', upgradeDropper);
+            if (isTouchDevice) {
+                upgradeDropperBtn.addEventListener('touchstart', (e) => { e.preventDefault(); upgradeDropper(); });
+            }
+
+            document.querySelectorAll('.tycoon-upgrade-button[data-part]').forEach(button => {
+                const partName = button.dataset.part;
+                button.addEventListener('click', () => upgradeTycoonPart(partName));
+                if (isTouchDevice) {
+                    button.addEventListener('touchstart', (e) => { e.preventDefault(); upgradeTycoonPart(partName); });
+                }
+            });
+
+            updateMoneyDisplay(); 
+            updateTycoonVisuals(); 
+        }
+
+        function toggleTycoonPanel(show) {
+            const tycoonPanelOverlay = document.getElementById('tycoonPanelOverlay');
+            const homeMenuOverlay = document.getElementById('homeMenuOverlay');
+            const settingsOverlay = document.getElementById('settingsOverlay');
+            const helpBox = document.getElementById('helpBox');
+            const inventoryOverlay = document.getElementById('inventoryOverlay');
+            const chatBar = document.getElementById('chatBar');
+            const chatMessagesDiv = document.getElementById('chatMessages');
+
+            if (show === undefined) { 
+                show = tycoonPanelOverlay.style.display === 'none';
+            }
+
+            if (show) {
+                homeMenuOverlay.style.display = 'none';
+                homeMenuOverlay.classList.remove('open', 'closing');
+                document.getElementById('homeMenuIcon').style.backgroundImage = "url('Hamburger@2x.png')";
+
+                settingsOverlay.style.display = 'none';
+                helpBox.style.display = 'none';
+                inventoryOverlay.style.display = 'none';
+                document.getElementById('inventoryButton').style.backgroundImage = "url('inventoryOff@2x.png')";
+
+                chatBar.style.display = 'none';
+                chatMessagesDiv.style.display = 'none';
+                document.getElementById('chatButton').style.backgroundImage = "url('Chat@2x.png')";
+
+                tycoonPanelOverlay.style.display = 'flex';
+                updateMoneyDisplay(); 
+            } else {
+                tycoonPanelOverlay.style.display = 'none';
+                if (currentActiveTool && currentActiveTool.type === 'tycoon') {
+                    activeHotbarSlot = 0; 
+                    updateHotbarUI();
+                }
+            }
+            updateMenuBackgroundOverlay();
+        }
+
+        init();
+    </script>
+</body>
+</html>
