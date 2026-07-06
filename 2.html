@@ -1,0 +1,3208 @@
+<!DOCTYPE html>
+    <meta charset="utf-8">
+    <title>vapidblox 2007</title>
+    <link rel="icon" href="folklore logoes.png" type="image/png">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro&display=swap');
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #000;
+            cursor: none; /* Default to none, managed by JS */
+            font-family: 'Source Sans Pro', sans-serif;
+        }
+        canvas {
+            display: block;
+            cursor: none; 
+        }
+        #gameContainer {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+            cursor: none; /* Default to none, managed by JS */
+        }
+        #customCursor {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            background-size: contain;
+            background-repeat: no-repeat;
+            transform: translate(-50%, -50%);
+            display: block;
+        }
+        /* Health bar container is now inside topbar-right */
+        #healthBarContainer { 
+            width: 100px; 
+            height: 4px; 
+            background-color: #888;
+            z-index: 1000;
+            border-radius: 0; 
+            overflow: hidden; 
+            margin-top: 10px; 
+        }
+        #healthBar {
+            position: relative;
+            left: 0; 
+            width: 100%; 
+            height: 100%;
+            background-color: #00FF00; 
+            transition: background-color 0.5s ease;
+            border-radius: 0; 
+        }
+        /* New UI Elements */
+        #homeMenuIcon {
+            position: static;
+            width: 38px;
+            height: 38px;
+            background-image: url('Hamburger@2x.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            cursor: pointer; 
+            z-index: 1000;
+            background-color: transparent;
+            border-radius: 4px; 
+            margin: 0; 
+        }
+        /* New Chat Button Style */
+        #chatButton {
+            position: static;
+            width: 38px;
+            height: 38px;
+            background-image: url('Chat@2x.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            cursor: pointer; 
+            z-index: 1000;
+            background-color: transparent;
+            border-radius: 4px; 
+            margin: 0; 
+        }
+        /* New Inventory Button Style */
+        #inventoryButton {
+            position: static;
+            width: 38px;
+            height: 38px;
+            background-image: url('inventoryOff@2x.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            cursor: pointer; 
+            z-index: 1000;
+            background-color: transparent;
+            border-radius: 4px; 
+            margin: 0 0 0 10px; 
+        }
+
+        #homeMenuOverlay {
+            display: none; 
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 800px; 
+            background-color: rgba(80, 80, 80, 0.9); 
+            z-index: 2000;
+            padding: 20px; 
+            color: white;
+            font-family: 'Source Sans Pro', sans-serif;
+            flex-direction: column; 
+            align-items: center;
+            min-height: 700px; 
+            justify-content: space-between; 
+        }
+        #homeMenuOverlay.open {
+            animation: slideUp 0.2s linear forwards;
+        }
+        #homeMenuOverlay.closing {
+            animation: slideDown 0.2s linear forwards;
+        }
+        #homeMenuOverlay h2 {
+            margin-top: 0;
+            margin-bottom: 20px; 
+            font-size: 28px; 
+            color: #FFFFFF;
+        }
+        .menuButton {
+            width: calc(100% - 40px);
+            padding: 15px 0;
+            margin-bottom: 10px;
+            background-color: #666666; 
+            border: 2px solid #666666; 
+            color: #FFFFFF;
+            font-family: 'Source Sans Pro', sans-serif;
+            font-size: 20px;
+            cursor: pointer;
+            text-align: center;
+            transition: background-color 0.2s, border-color 0.2s;
+            border-radius: 5px;
+        }
+        /* Specific styles for buttons inside #bottomMenuButtons */
+        #bottomMenuButtons .menuButton {
+            width: 220px; 
+            margin-bottom: 0;
+        }
+        #bottomMenuButtons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            margin-top: 20px;
+        }
+        .menuButton:hover {
+            background-color: rgb(0, 162, 255); 
+            border-color: #666666; 
+        }
+        #closeHomeMenu {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            cursor: pointer; 
+            color: white;
+            font-size: 40px; 
+        }
+        #helpBox {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 700px;
+            height: 500px;
+            background-color: rgba(128, 128, 128, 0.5);
+            z-index: 2000;
+            padding: 25px;
+            color: white;
+            font-family: 'Source Sans Pro', sans-serif;
+            font-size: 18px;
+        }
+        #helpBox h2 {
+            font-size: 24px;
+        }
+        #helpBox p {
+            margin-bottom: 10px;
+        }
+        #closeHelp {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            cursor: pointer; 
+            color: white;
+            font-size: 40px; 
+        }
+        /* New styles for Settings Overlay */
+        #settingsOverlay {
+            display: none; 
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            background-color: rgba(80, 80, 80, 0.9);
+            z-index: 2000;
+            padding: 20px;
+            color: white;
+            font-family: 'Source Sans Pro', sans-serif;
+            flex-direction: column;
+            align-items: center;
+        }
+        #settingsOverlay h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 28px;
+            color: #FFFFFF;
+        }
+        #closeSettingsMenu {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            cursor: pointer; 
+            color: white;
+            font-size: 40px; 
+        }
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: calc(100% - 40px); 
+            margin-bottom: 15px;
+        }
+        .setting-item label {
+            font-size: 18px;
+            margin-right: 10px;
+            font-family: 'Source Sans Pro', sans-serif;
+        }
+        .setting-item select {
+            width: 50%;
+            padding: 8px;
+            font-size: 16px;
+            background-color: #333;
+            color: white;
+            border: 1px solid #555;
+            border-radius: 44px;
+            cursor: pointer; 
+            -webkit-appearance: none; 
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%204%205%22%3E%3Cpath%20fill%3D%22%23ffffff%22%20d%3D%22M2%200L0%202h4zm0%205L0%203h4z%22%2F%3E%3C%2Fsvg%3E'); 
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 8px 10px;
+            font-family: 'Source Sans Pro', sans-serif;
+        }
+
+        /* NEW INVENTORY OVERLAY */
+        #inventoryOverlay {
+            display: none; 
+            position: absolute;
+            top: 65%; 
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 700px; 
+            height: 500px; 
+            background-color: rgba(40, 40, 40, 0.9); 
+            z-index: 2000;
+            padding: 20px;
+            color: white;
+            font-family: 'Source Sans Pro', sans-serif;
+            flex-direction: column;
+            align-items: center;
+        }
+        #inventoryOverlay h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 28px;
+            color: #FFFFFF;
+        }
+        #closeInventoryMenu {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            cursor: pointer; 
+            color: white;
+            font-size: 40px; 
+        }
+        #inventorySearchBar { 
+            position: absolute;
+            top: 10px; 
+            right: 55px; 
+            width: 200px; 
+            padding: 8px 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: 1px solid rgb(0, 162, 255); 
+            border-radius: 0; 
+            font-size: 16px;
+            font-family: 'Source Sans Pro', sans-serif;
+            outline: none;
+        }
+        #inventorySearchBar::placeholder {
+            color: #ccc;
+        }
+
+
+        #leaderboard {
+            position: absolute;
+            top: 50px; 
+            right: 10px;
+            width: auto; 
+            max-height: none; 
+            overflow-y: visible; 
+            background-color: transparent; 
+            padding: 10px; 
+            color: white;
+            font-family: 'Source Sans Pro', sans-serif;
+            z-index: 1000;
+            font-size: 16px; 
+            border-radius: 0; 
+            box-shadow: none; 
+            box-sizing: border-box; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: flex-end; 
+        }
+        /* New styles for the specific leaderboard look */
+        .leaderboard-name-frame {
+            background-color: rgba(0, 0, 0, 0.5); 
+            padding: 5px 20px 5px 50px; 
+            margin-bottom: 5px; 
+            border-radius: 0; 
+            align-self: flex-end; 
+        }
+        /* This class will now be used for secondary player names in the leaderboard */
+        .leaderboard-name-frame.large-player {
+            background-color: transparent; 
+            padding-bottom: 5px; 
+            font-size: 16px; 
+        }
+        #leaderboard .leaderboard-player-large {
+            font-size: 16px; 
+            font-weight: bold;
+            color: #FFFFFF;
+            text-shadow: none; 
+            white-space: nowrap; 
+        }
+        #leaderboard .leaderboard-line-divider {
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.2); 
+            margin: 5px 0; 
+            width: 100%; 
+        }
+        #leaderboard .leaderboard-player-small {
+            font-size: 14px;
+            color: #FFFFFF;
+            text-shadow: none; 
+            white-space: nowrap; 
+        }
+        #chatBar {
+            position: absolute;
+            top: calc(50px + 180px + 10px);
+            left: 10px; 
+            width: 350px; 
+            height: 30px; 
+            background-color: rgba(0, 0, 0, 0.8); 
+            color: #FFFFFF;
+            font-family: 'Source Sans Pro', sans-serif;
+            font-size: 16px;
+            padding: 0 10px; 
+            z-index: 1001;
+            display: none; 
+            cursor: text; /* Text input cursor */
+            border-radius: 0; 
+            border: none;   
+            outline: none;  
+        }
+        #chatMessages {
+            position: absolute;
+            top: calc(50px + 10px);
+            left: 10px; 
+            width: 350px; 
+            height: auto; 
+            max-height: 180px; 
+            background-color: rgba(0, 0, 0, 0); 
+            color: white;
+            overflow-y: auto;
+            display: none; 
+            z-index: 1001;
+            padding-bottom: 0;
+            flex-direction: column; 
+            justify-content: flex-end;
+            max-height: calc(6 * 26px); 
+            box-sizing: border-box; 
+            padding-right: 5px; 
+        }
+        .chatMessage {
+            padding: 5px 12px; 
+            font-family: 'Source Sans Pro', sans-serif;
+            font-size: 15px;
+            background-color: rgba(0, 0, 0, 0); 
+            margin: 2px 0 2px 10px; 
+            display: block;
+            width: fit-content; 
+            max-width: calc(100% - 20px); 
+            text-shadow: none;
+            border-radius: 0; 
+        }
+        /* Hotbar Styles */
+        #hotbarContainer {
+            position: absolute;
+            bottom: 20px; 
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 5px; 
+            z-index: 1000;
+        }
+        .hotbar-slot {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(30, 30, 30, 0.5); 
+            border: 2px solid #555555; 
+            border-radius: 0; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative; 
+            cursor: pointer; 
+            transition: border-color 0.1s ease, background-color 0.1s ease; 
+            box-sizing: border-box; 
+        }
+        .hotbar-slot.active {
+            background-color: rgba(60, 60, 60, 0.5); 
+            border: 4px solid rgb(0, 162, 255); 
+        }
+        .hotbar-slot .key-number {
+            position: absolute;
+            bottom: 2px;
+            right: 4px;
+            font-family: 'Source Sans Pro', sans-serif;
+            font-size: 12px;
+            color: #FFFFFF;
+            text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; 
+            pointer-events: none; 
+        }
+        .hotbar-slot img.tool-icon {
+            width: 80%; 
+            height: 80%;
+            object-fit: contain;
+            pointer-events: none; 
+        }
+
+        /* Chat Bubble Styles */
+        #chatBubbleContainer {
+            position: absolute;
+            pointer-events: none; 
+            z-index: 2000; 
+            min-width: 80px; 
+            max-width: 250px; 
+        }
+
+        .chatBubble {
+            background-color: white;
+            border: 2px solid #555; 
+            border-radius: 10px; 
+            padding: 5px 10px;
+            position: relative;
+            word-wrap: break-word; 
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.3); 
+            font-family: 'Source Sans Pro', sans-serif;
+            color: black;
+            font-size: 14px;
+            line-height: 1.2;
+            text-align: center; 
+        }
+
+        .chatBubble::after {
+            content: '';
+            position: absolute;
+            bottom: -10px; 
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 10px solid white; 
+            z-index: 1; 
+        }
+
+        .chatBubble::before { 
+            content: '';
+            position: absolute;
+            bottom: -12px; 
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 11px solid transparent; 
+            border-right: 11px solid transparent;
+            border-top: 12px solid #555; 
+            z-index: 0; 
+        }
+
+        #menuBackgroundOverlay {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(128, 128, 128, 0.5); 
+            z-index: 1999; 
+            pointer-events: auto; 
+        }
+
+        /* Add these animations */
+        @keyframes slideUp {
+            from {
+                transform: translate(-50%, 100vh);
+                opacity: 0;
+            }
+            to {
+                transform: translate(-50%, -50%);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translate(-50%, -50%);
+                opacity: 1;
+            }
+            to {
+                transform: translate(-50%, 100vh);
+                opacity: 0;
+            }
+        }
+
+        /* Mobile Controls */
+        #mobileControls {
+            display: none; 
+        }
+
+        #thumbstickContainer {
+            position: absolute; 
+            bottom: 90px;
+            left: 20px;
+            width: 100px; 
+            height: 100px; 
+            background-image: url('thumb .png'); 
+            background-size: cover; 
+            background-repeat: no-repeat;
+            background-position: center;
+            background-color: transparent; 
+            border-radius: 8px; 
+            border: none; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            touch-action: none; 
+            box-shadow: none; 
+        }
+
+        #thumbstick {
+            width: 50px; 
+            height: 50px; 
+            background-image: url('stick.png'); 
+            background-size: contain; 
+            background-repeat: no-repeat;
+            background-position: center;
+            background-color: transparent; 
+            border-radius: 50%; 
+            border: none; 
+            position: absolute; 
+            transform: translate(-50%, -50%); 
+            left: 50%;
+            top: 50%;
+            box-shadow: none; 
+        }
+
+        #jumpButton {
+            position: absolute;
+            bottom: 90px;
+            right: 20px;
+            width: 70px;
+            height: 70px;
+            background-image: url('hoe.png'); 
+            background-size: contain; 
+            background-repeat: no-repeat;
+            background-position: center;
+            background-color: transparent; 
+            border-radius: 50%; 
+            border: none; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: transparent; 
+            font-size: 0; 
+            font-family: unset; 
+            font-weight: unset; 
+            text-shadow: none; 
+            user-select: none; 
+            -webkit-user-select: none;
+            z-index: 1000;
+            cursor: pointer;
+            touch-action: manipulation; 
+            box-shadow: none; 
+        }
+
+        /* Topbar styles */
+        #topbar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            background-color: rgba(0, 0, 0, 0.5); 
+            z-index: 999;
+            display: flex;
+            align-items: center; 
+            justify-content: space-between; 
+            padding: 0 10px;
+            box-sizing: border-box;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2); 
+        }
+        #topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 10px; 
+        }
+        #topbar-right {
+            display: flex;
+            flex-direction: column; 
+            align-items: flex-end; 
+            gap: 0px; 
+            padding-right: 10px;
+        }
+        /* Adjust existing elements to fit into the topbar structure */
+        #homeMenuIcon, #chatButton, #inventoryButton {
+            position: static; 
+            transform: none; 
+        }
+        /* Style for the player name in the topbar */
+        #playerNameTopbar {
+            font-size: 16px; 
+            font-weight: bold;
+            color: #FFFFFF;
+            text-shadow: none; 
+            white-space: nowrap; 
+            margin-top: 5px; 
+            margin-bottom: 0px; 
+        }
+        #topMenuButtons {
+            display: flex;
+            justify-content: center; 
+            gap: 10px; 
+            width: 100%; 
+            margin-bottom: 20px; 
+        }
+
+        #topMenuButtons .menuButton {
+            width: 220px; 
+            margin-bottom: 0; 
+        }
+        #playerInfoMenu {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 40px; 
+            margin-top: 20px; 
+            font-size: 24px;
+            font-weight: bold;
+            color: #FFFFFF;
+            text-shadow: none;
+            gap: 10px; 
+        }
+
+        #playerInfoMenu img {
+            width: 48px;
+            height: 48px;
+            object-fit: contain;
+        }
+        #leaveGameBtn {
+            background-image: url('LeaveIcon.png');
+            background-repeat: no-repeat;
+            background-position: 15px center; 
+            background-size: 32px 32px; 
+            padding-left: 60px; 
+            text-align: left; 
+        }
+        #resetCharacterBtn {
+            background-image: url('ResetIcon.png');
+            background-repeat: no-repeat;
+            background-position: 15px center; 
+            background-size: 32px 32px;
+            padding-left: 60px; 
+            text-align: left;
+        }
+        #settingsBtn {
+            background-image: url('GameSettingsTab@2x.png');
+            background-repeat: no-repeat;
+            background-position: 15px center;
+            background-size: 32px 32px;
+            padding-left: 60px;
+            text-align: left;
+        }
+        #helpBtn {
+            background-image: url('HelpTab@2x.png');
+            background-repeat: no-repeat;
+            background-position: 15px center;
+            background-size: 32px 32px;
+            padding-left: 60px;
+            text-align: left;
+        }
+        /* Money Display */
+        #moneyDisplay {
+            color: #FFFFFF;
+            font-size: 16px;
+            font-weight: bold;
+            margin-left: 10px; /* Adjust spacing from other left-aligned elements */
+            text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+        }
+        /* Studio Button and RBXL import */
+        #bottomLeftUI {
+            position: absolute;
+            bottom: 20px; 
+            left: 20px;
+            display: flex;
+            gap: 10px; 
+            z-index: 1000;
+            align-items: center;
+        }
+        .bottom-left-ui-button {
+            padding: 10px 15px;
+            background-color: rgba(30, 30, 30, 0.5);
+            border: 2px solid #555555;
+            border-radius: 0;
+            color: white;
+            font-family: 'Source Sans Pro', sans-serif;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.1s ease, border-color 0.1s ease;
+        }
+        .bottom-left-ui-button:hover {
+            background-color: rgba(60, 60, 60, 0.5);
+            border-color: rgb(0, 162, 255);
+        }
+
+        /* Console Styles */
+        #consoleContainer {
+            display: none; /* Hidden by default */
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70%;
+            max-width: 800px;
+            height: 250px;
+            background-color: rgba(0, 0, 0, 0.85);
+            border: 1px solid #333;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            z-index: 2500;
+            flex-direction: column;
+            font-family: 'Source Sans Pro', sans-serif;
+            color: #FFF;
+        }
+        #consoleOutput {
+            flex-grow: 1;
+            padding: 10px;
+            overflow-y: auto;
+            border-bottom: 1px solid #333;
+            font-size: 14px;
+            white-space: pre-wrap; /* Preserve whitespace and allow wrapping */
+            word-break: break-all; /* Break long words */
+        }
+        #consoleInput {
+            width: calc(100% - 20px);
+            padding: 10px;
+            background-color: #222;
+            border: none;
+            color: #EEE;
+            font-size: 14px;
+            outline: none;
+            box-sizing: border-box;
+            cursor: text; /* Text input cursor */
+        }
+        #consoleInput::placeholder {
+            color: #AAA;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="customCursor"></div>
+        
+        <div id="topbar">
+            <div id="topbar-left">
+                <div id="homeMenuIcon"></div>
+                <div id="chatButton"></div> 
+                <div id="inventoryButton"></div> 
+                <div id="moneyDisplay">$0</div>
+            </div>
+            <div id="topbar-right">
+                <div id="playerNameTopbar"></div>
+                <div id="healthBarContainer">
+                    <div id="healthBar"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="leaderboard"></div>
+
+        <div id="menuBackgroundOverlay"></div> 
+        <div id="homeMenuOverlay">
+            <div id="playerInfoMenu">
+                <img src="/placeholder.png" alt="Player Icon">
+                <span id="playerNameMenu"></span>
+            </div>
+            <div id="topMenuButtons">
+                <button class="menuButton" id="settingsBtn">Settings</button>
+                <button class="menuButton" id="helpBtn">Help</button>
+                <button class="menuButton" id="fullscreenBtn">Fullscreen</button>
+            </div>
+            <div style="flex-grow: 1;"></div> 
+            <div id="bottomMenuButtons">
+                <button class="menuButton" id="resumeGameBtn">Resume Game</button>
+                <button class="menuButton" id="resetCharacterBtn">Reset Character</button>
+                <button class="menuButton" id="leaveGameBtn">Leave Game</button>
+            </div>
+        </div>
+
+        <div id="helpBox">
+            <div id="closeHelp">&#xd7;</div>
+            <h2>Help</h2>
+            <p>WASD - Move character</p>
+            <p>Space - Jump</p>
+            <p>Right Click + Mouse - Rotate camera</p>
+            <p>Mouse Wheel - Zoom in/out</p>
+            <p>Left Click - Place block (when build tool is active)</p>
+        </div>
+
+        <!-- NEW SETTINGS OVERLAY -->
+        <div id="settingsOverlay">
+            <div id="closeSettingsMenu">&#xd7;</div>
+            <h2>Settings</h2>
+            <div class="setting-item">
+                <label for="resolutionScale">Resolution Scale:</label>
+                <select id="resolutionScale">
+                    <option value="0.5">0.5x (Lowest)</option>
+                    <option value="0.75">0.75x (Low)</option>
+                    <option value="1" selected>1x (Native)</option>
+                    <option value="1.25">1.25x (High)</option>
+                    <option value="1.5">1.5x (Highest)</option>
+                </select>
+            </div>
+            <div class="setting-item">
+                <label for="shiftLockToggle">Shift Lock:</label>
+                <select id="shiftLockToggle">
+                    <option value="off">Off</option>
+                    <option value="on">On</option>
+                </select>
+            </div>
+            <!-- Add other settings here later -->
+        </div>
+
+        <!-- NEW INVENTORY OVERLAY -->
+        <div id="inventoryOverlay">
+            <div id="closeInventoryMenu">&#xd7;</div>
+            <input type="text" id="inventorySearchBar" placeholder="Search...">
+            <!-- Placeholder for inventory content -->
+        </div>
+
+        <div id="chatMessages"></div>
+        <input type="text" id="chatBar" placeholder="Click to chat or press /">
+
+        <div id="hotbarContainer">
+            <!-- Hotbar slots will be generated here by JavaScript -->
+        </div>
+
+        <!-- Mobile Controls -->
+        <div id="mobileControls">
+            <div id="thumbstickContainer">
+                <div id="thumbstick"></div>
+            </div>
+            <div id="jumpButton"></div>
+        </div>
+
+        <!-- Studio Button and RBXL import -->
+        <div id="bottomLeftUI">
+            <button id="studioButton" class="bottom-left-ui-button">Studio</button>
+            <button id="loadExampleMapButton" class="bottom-left-ui-button">Load Example Map</button>
+            <input type="file" id="rbxlFileInput" accept=".rbxl,.rbxlx" style="display: none;">
+            <button id="saveMapButton" class="bottom-left-ui-button">Save Map</button>
+            <input type="file" id="loadUserMapInput" accept=".rbxlx" style="display: none;">
+            <button id="loadUserMapButton" class="bottom-left-ui-button">Load User Map</button>
+            <button id="consoleButton" class="bottom-left-ui-button">Console</button>
+        </div>
+
+        <!-- Console UI -->
+        <div id="consoleContainer">
+            <div id="consoleOutput"></div>
+            <input type="text" id="consoleInput" placeholder="Enter command (e.g., /add part red 5 1 5 0 2 0)">
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script>
+        // === USER: PASTE YOUR BASE64 AUDIO DATA HERE ===
+        const BASE64_JUMP_SOUND = "data:audio/mpeg;base64,YOUR_JUMP_SOUND_BASE64_HERE";
+        const BASE64_WALK_SOUND = "data:audio/mpeg;base664,YOUR_WALK_SOUND_BASE64_HERE";
+        const BASE64_DEATH_SOUND = "data:audio/mpeg;base64,YOUR_DEATH_SOUND_BASE64_HERE";
+        // ===============================================
+
+        // Example RBXLX content for quick testing.
+        // This content defines some basic parts and models.
+        // Click "Load Example Map" to import this directly.
+        const defaultMapRBXLXContent = `
+<Roblox xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">
+  <Item class="Workspace" referent="RBX0">
+    <Properties>
+      <string name="Name">Workspace</string>
+    </Properties>
+    <Item class="Part" referent="RBX1">
+      <Properties>
+        <string name="Name">RedWall</string>
+        <Vector3 name="Position">
+          <X>0</X>
+          <Y>2.5</Y>
+          <Z>-15</Z>
+        </Vector3>
+        <Vector3 name="Size">
+          <X>10</X>
+          <Y>5</Y>
+          <Z>1</Z>
+        </Vector3>
+        <Color3uint8 name="Color">
+          <R>255</R>
+          <G>0</G>
+          <B>0</B>
+        </Color3uint8>
+        <Vector3 name="Rotation">
+          <X>0</X>
+          <Y>0</Y>
+          <Z>0</Z>
+        </Vector3>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="RBX2">
+      <Properties>
+        <string name="Name">GreenPlatform</string>
+        <Vector3 name="Position">
+          <X>10</X>
+          <Y>0.5</Y>
+          <Z>-5</Z>
+        </Vector3>
+        <Vector3 name="Size">
+          <X>8</X>
+          <Y>1</Y>
+          <Z>8</Z>
+        </Vector3>
+        <Color3uint8 name="Color">
+          <R>0</R>
+          <G>255</G>
+          <B>0</B>
+        </Color3uint8>
+        <Vector3 name="Rotation">
+          <X>0</X>
+          <Y>45</Y>
+          <Z>0</Z>
+        </Vector3>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="RBX5">
+      <Properties>
+        <string name="Name">BlueCube</string>
+        <Vector3 name="Position">
+          <X>-10</X>
+          <Y>1.5</Y>
+          <Z>5</Z>
+        </Vector3>
+        <Vector3 name="Size">
+          <X>3</X>
+          <Y>3</X>
+          <Z>3</Z>
+        </Vector3>
+        <Color3uint8 name="Color">
+          <R>0</R>
+          <G>0</G>
+          <B>255</B>
+        </Color3uint8>
+        <Vector3 name="Rotation">
+          <X>0</X>
+          <Y>0</Y>
+          <Z>0</Z>
+        </Vector3>
+      </Properties>
+    </Item>
+    <Item class="Model" referent="RBX3">
+      <Properties>
+        <string name="Name">MarioCharacter</string>
+        <Vector3 name="Position">
+          <X>-8</X>
+          <Y>1</Y>
+          <Z>-10</Z>
+        </Vector3>
+        <float name="Scale">1.5</float>
+        <string name="AssetPath">/mario64.glb</string>
+        <Vector3 name="Rotation">
+          <X>0</X>
+          <Y>90</Y>
+          <Z>0</Z>
+        </Vector3>
+      </Properties>
+    </Item>
+    <Item class="Model" referent="RBX4">
+      <Properties>
+        <string name="Name">NoobModel</string>
+        <Vector3 name="Position">
+          <X>15</X>
+          <Y>1</Y>
+          <Z>-15</Z>
+        </Vector3>
+        <float name="Scale">1.8</float>
+        <string name="AssetPath">/roblox_rigged_r6_noob.glb</string>
+        <Vector3 name="Rotation">
+          <X>0</X>
+          <Y>0</Y>
+          <Z>0</Z>
+        </Vector3>
+      </Properties>
+    </Item>
+  </Item>
+</Roblox>
+`;
+
+        let scene, camera, renderer, character, characterModel;
+        let mixer, currentClipAction;
+        let moveForward = false,
+            moveBackward = false,
+            moveLeft = false,
+            moveRight = false,
+            jump = false;
+        let isMovingHorizontally = false; 
+        let velocity = new THREE.Vector3();
+        let horizontalVelocityX = 0; 
+        let horizontalVelocityZ = 0; 
+        let direction = new THREE.Vector3(); 
+        let thumbstickVector = new THREE.Vector2(0, 0); 
+        let rotation = new THREE.Vector2(); 
+        let clock = new THREE.Clock();
+        let isRightMouseDown = false;
+        let cameraOffset = new THREE.Vector3(0, 5, 10);
+        let lastFrameTime = 0;
+        const targetFPS = 60;
+        const frameInterval = 1000 / targetFPS;
+        const jumpForce = 12; 
+        const gravity = -45; 
+        let isJumping = false;
+        let isOnGround = true; 
+        const mouseSensitivity = 0.004;
+        const speed = 8.0; 
+        let animationFrameId;
+        const commonColors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF', '#FFA500', '#800080', '#008000', '#000080'];
+        let isChatting = false;
+        let chatMessages = [];
+        let username = "Player" + Math.floor(Math.random() * 9999 + 1);
+        let jumpSound;
+        let deathSound; 
+        let baseplateTexture;
+        let skyboxTexture;
+        let isFalling = false; 
+        let isRespawning = false; 
+        let fallStartTime = 0;
+        const FALL_DURATION = 7000; 
+        const RESPAWN_COOLDOWN = 5000; 
+        
+        const rotationSpeed = 0.2; 
+        const CHARACTER_HALF_WIDTH = 0.8; 
+        const CHARACTER_HEIGHT = 3.2; 
+        let currentActionName = 'idle'; 
+
+        let animationActions = {}; 
+        const WALK_ANIM_SPEED = 1.5; 
+
+        const HOTBAR_SLOTS = 9; 
+        let activeHotbarSlot = 0; 
+        let currentActiveTool = null; 
+        
+        let raycaster = new THREE.Raycaster(); 
+        let mouse = new THREE.Vector2(); 
+        let hotbarItems = [
+        ];
+
+        let currentChatBubble = null;
+        const CHAT_BUBBLE_DURATION = 5000; 
+
+        let audioContext;
+        let walkSoundBuffer;
+        let walkSoundSource = null; 
+        let isWalkSoundPlaying = false; 
+
+        let currentResolutionScale = 1; 
+
+        let isShiftLockEnabled = false; 
+        let isShiftLockActive = false;  
+        const shiftLockCursorImage = '/MouseLockedCursor.png'; 
+
+        
+        let rightArmBone = null;   
+
+        let isTouchDevice = false; 
+        let thumbstickTouched = false;
+        let thumbstickCenter = { x: 0, y: 0 }; 
+        let thumbstickRadius = 0; 
+
+        let isCameraDragging = false; 
+        let lastTouchX = 0;
+        let lastTouchY = 0;
+
+        // New global variable for imported map objects
+        let importedMapGroup; 
+        let isConsoleOpen = false; // New variable for console state
+
+        // New variables for object manipulation
+        let selectedObject = null;
+        let selectionBoxHelper = null;
+        let sceneObjects = new Map(); // Stores all manipulatable objects by name
+        let partCounter = 0; // For generating unique part names
+
+
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        function updateLeaderboard() {
+            const leaderboard = document.getElementById('leaderboard');
+            leaderboard.innerHTML = `
+                    <hr class="leaderboard-line-divider">
+                    <div class="leaderboard-name-frame">
+                        <div class="leaderboard-player-small">${username}</div>
+                    </div>
+                `;
+        }
+        function init() {
+            isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0;
+            
+            scene = new THREE.Scene();
+            const textureLoader = new THREE.TextureLoader();
+            skyboxTexture = textureLoader.load('roblox_sky.png', function(texture) {
+                scene.background = texture;
+            });
+
+            // Initialize the group for imported map objects
+            importedMapGroup = new THREE.Group();
+            importedMapGroup.name = "importedMap";
+            scene.add(importedMapGroup);
+
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            loadSound(BASE64_JUMP_SOUND, (buffer) => {
+                jumpSound = buffer;
+            });
+            loadSound(BASE64_WALK_SOUND, (buffer) => {
+                walkSoundBuffer = buffer;
+            });
+            loadSound(BASE64_DEATH_SOUND, (buffer) => { 
+                deathSound = buffer;
+            });
+
+            THREE.LinearFilter = true;
+            createBaseplate(scene);
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio * currentResolutionScale); 
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap; 
+            document.getElementById('gameContainer').appendChild(renderer.domElement);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(5, 10, 7);
+            directionalLight.castShadow = true; 
+            directionalLight.shadow.mapSize.width = 1024; 
+            directionalLight.shadow.mapSize.height = 1024; 
+            directionalLight.shadow.camera.near = 0.5;
+            directionalLight.shadow.camera.far = 50;
+            directionalLight.shadow.camera.left = -20;
+            directionalLight.shadow.camera.right = 20;
+            directionalLight.shadow.camera.top = 20;
+            directionalLight.shadow.camera.bottom = -20;
+            scene.add(directionalLight);
+
+            character = new THREE.Group();
+            character.position.set(0, 1.5, 15); 
+            character.castShadow = true; 
+            scene.add(character);
+            character.visible = true;
+
+            loadCharacterModel();
+            
+            updateCameraPosition();
+            document.addEventListener('keydown', onKeyDown);
+            document.addEventListener('keyup', onKeyUp);
+            
+            const gameContainer = document.getElementById('gameContainer');
+            gameContainer.addEventListener('mousemove', onMouseMove);
+            gameContainer.addEventListener('mousedown', onMouseDown);
+            gameContainer.addEventListener('mouseup', onMouseUp);
+            gameContainer.addEventListener('contextmenu', e => e.preventDefault());
+            gameContainer.addEventListener('wheel', onMouseWheel);
+
+            if (isTouchDevice) {
+                gameContainer.addEventListener('touchstart', handleGameContainerTouchStart, { passive: false });
+                gameContainer.addEventListener('touchmove', handleGameContainerTouchMove, { passive: false });
+                gameContainer.addEventListener('touchend', handleGameContainerTouchEnd, { passive: false });
+                gameContainer.addEventListener('touchcancel', handleGameContainerTouchEnd, { passive: false });
+            }
+            
+            window.addEventListener('resize', onWindowResize, false);
+            
+            document.getElementById('playerNameTopbar').textContent = username; 
+            document.getElementById('playerNameMenu').textContent = username; 
+            updateLeaderboard(); 
+            initializeChatUI(); 
+            initializeHomeMenu(); 
+            initializeSettingsUI(); 
+            initializeInventoryUI(); 
+            initializeHotbarUI(); 
+            initializeStudioUI(); 
+            initializeConsoleUI(); // Initialize new Console UI
+            updateCursor(); 
+            animate();
+        }
+
+        async function loadSound(base64Data, callback) {
+            if (!base64Data || base64Data.indexOf('data:audio/') !== 0) {
+                console.warn("Invalid base64 audio data provided. Please ensure it starts with 'data:audio/'.");
+                return;
+            }
+            try {
+                const base64Audio = base64Data.split(',')[1];
+                const binaryString = atob(base64Audio);
+                const len = binaryString.length;
+                const bytes = new Uint8Array(len);
+                for (let i = 0; i < len; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                const arrayBuffer = bytes.buffer;
+
+                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                callback(audioBuffer);
+            } catch (error) {
+                console.error(`Error loading sound from base64 data:`, error);
+            }
+        }
+
+        function playSound(buffer, loop = false, volume = 1.0, playbackRate = 1.0) {
+            if (!buffer || !audioContext) {
+                console.warn("Audio buffer or context not ready.");
+                return null;
+            }
+
+            const source = audioContext.createBufferSource();
+            source.buffer = buffer;
+            source.loop = loop;
+            source.playbackRate.value = playbackRate; 
+
+            const gainNode = audioContext.createGain();
+            gainNode.gain.value = volume;
+
+            source.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            try {
+                source.start(0);
+                return source; 
+            } catch (e) {
+                console.error("Error starting sound source:", e);
+                return null; 
+            }
+        }
+
+        function stopSound(source) {
+            if (source) {
+                try {
+                    source.stop();
+                    source.disconnect();
+                } catch (e) {
+                    console.warn("Error stopping sound source:", e);
+                }
+            }
+        }
+
+        function createBaseplate(targetScene) {
+            const baseplateGeometry = new THREE.BoxGeometry(100, 1, 100);
+            const textureLoader = new THREE.TextureLoader();
+            const baseplateTexture = textureLoader.load('Screenshot_132.png', function(texture) {
+                texture.wrapS = THREE.RepeatWrapping;
+                texture.wrapT = THREE.RepeatWrapping;
+                texture.repeat.set(156, 156); 
+            });
+            const baseplateMaterial = new THREE.MeshPhongMaterial({
+                map: baseplateTexture,
+                color: 0xFFFFFF
+            });
+            const baseplate = new THREE.Mesh(baseplateGeometry, baseplateMaterial);
+            baseplate.position.y = -0.5;
+            baseplate.receiveShadow = true; 
+            baseplate.castShadow = true;
+            baseplate.name = 'baseplate';
+            targetScene.add(baseplate);
+        }
+        
+        function loadCharacterModel() {
+            const loader = new THREE.GLTFLoader();
+            loader.load('r6_roblox_noob_animated.glb', function(gltf) { 
+                characterModel = gltf.scene;
+                characterModel.scale.set(1.6, 1.6, 1.6); 
+                characterModel.position.y = 0; 
+                characterModel.rotation.y = Math.PI; 
+                characterModel.visible = true;
+                character.add(characterModel);
+
+                mixer = new THREE.AnimationMixer(characterModel);
+                
+                let idleClip = gltf.animations.find(clip => clip.name.toLowerCase().includes('idle'));
+                animationActions.idle = idleClip ? mixer.clipAction(idleClip) : null;
+                
+                let walkClip = gltf.animations.find(clip => clip.name.toLowerCase().includes('run') || clip.name.toLowerCase().includes('walk'));
+                animationActions.walk = walkClip ? mixer.clipAction(walkClip) : null;
+                
+                let jumpClip = gltf.animations.find(clip => clip.name.toLowerCase().includes('jump'));
+                animationActions.jump = jumpClip ? mixer.clipAction(jumpClip) : null;
+
+                Object.values(animationActions).forEach(action => {
+                    if (action) { 
+                        action.setLoop(THREE.LoopRepeat);
+                        action.setEffectiveWeight(0); 
+                        if (action === animationActions.walk) {
+                            action.setEffectiveTimeScale(WALK_ANIM_SPEED);
+                        }
+                    }
+                });
+
+                if (animationActions.jump) {
+                    animationActions.jump.setLoop(THREE.LoopOnce);
+                    animationActions.jump.clampWhenFinished = true;
+                }
+
+                if (animationActions.idle) {
+                    animationActions.idle.setEffectiveWeight(1);
+                    animationActions.idle.play();
+                }
+                currentActionName = 'idle';
+                characterModel.traverse(node => {
+                    if (node.isMesh) {
+                        node.castShadow = true;     
+                        node.receiveShadow = false; 
+                        if (node.material) {
+                            node.material = node.material.clone();
+                            node.material.emissive.set(0x333333); 
+                            node.material.emissiveIntensity = 0.5; 
+                            node.material.needsUpdate = true;
+                        }
+                    }
+                    if (node.isBone && node.name === 'Right Arm') { 
+                        rightArmBone = node;
+                    }
+                });
+                cameraOffset.set(0, 5, 5); 
+                updateCameraPosition();
+            });
+        }
+
+        function fadeToAnimation(actionName, duration = 0.1) {
+            if (!mixer || !animationActions || !animationActions[actionName]) {
+                return;
+            }
+
+            const newAction = animationActions[actionName];
+            const currentActiveAction = animationActions[currentActionName];
+
+            if (currentActiveAction === newAction) {
+                if (!newAction.enabled || newAction.weight < 0.99) {
+                     newAction.enabled = true;
+                     newAction.setEffectiveWeight(1);
+                     newAction.play();
+                }
+                return;
+            }
+
+            if (currentActiveAction) {
+                currentActiveAction.fadeOut(duration);
+            }
+
+            newAction.reset(); 
+            newAction.enabled = true;
+            newAction.setEffectiveWeight(1); 
+            newAction.fadeIn(duration); 
+            newAction.play(); 
+
+            if (newAction === animationActions.walk) {
+                newAction.setEffectiveTimeScale(WALK_ANIM_SPEED);
+            } else {
+                newAction.setEffectiveTimeScale(1);
+            }
+            
+            if (newAction === animationActions.jump) {
+                newAction.setLoop(THREE.LoopOnce);
+                newAction.clampWhenFinished = true;
+            } else {
+                newAction.setLoop(THREE.LoopRepeat);
+                newAction.clampWhenFinished = false;
+            }
+
+            currentActionName = actionName; 
+        }
+
+        function onWindowResize() {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio * currentResolutionScale); 
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            
+            const thumbstickContainer = document.getElementById('thumbstickContainer');
+            if (thumbstickContainer) {
+                const rect = thumbstickContainer.getBoundingClientRect();
+                thumbstickCenter = {
+                    x: rect.left + rect.width / 2,
+                    y: rect.top + rect.height / 2
+                };
+                thumbstickRadius = rect.width / 2;
+            }
+        }
+        function onKeyDown(event) {
+            const consoleInput = document.getElementById('consoleInput');
+            const chatBar = document.getElementById('chatBar');
+
+            // --- CONSOLE/CHAT INPUT PRIORITY ---
+            // If console is open and input field is focused, let it handle typing characters directly.
+            // This includes '/'. Only prevent default for console toggle or escape.
+            if (isConsoleOpen && document.activeElement === consoleInput) {
+                if (event.key === '`' || event.key === '~' || event.code === 'Escape') {
+                    event.preventDefault(); // Prevent these specific keys from being typed into the console input
+                } else {
+                    return; // Let other keys (like '/') be typed into the console input naturally
+                }
+            } else if (isChatting && document.activeElement === chatBar) {
+                // If chat is open and input field is focused, let it handle typing characters directly.
+                // Only prevent default for escape.
+                if (event.code === 'Escape') {
+                    event.preventDefault(); // Prevent escape from being typed into chat input
+                } else {
+                    return; // Let other keys be typed into the chat input naturally
+                }
+            }
+            // --- END CONSOLE/CHAT INPUT PRIORITY ---
+
+            // --- UI TOGGLE LOGIC ---
+            if (event.key === '`' || event.key === '~') { // Toggle console with backtick/tilde
+                event.preventDefault();
+                toggleConsole();
+                return;
+            }
+
+            if (event.key === '/') {
+                // Only toggle chat if the console is not open.
+                // If console is open and consoleInput is focused, the check above already handled it.
+                if (!isConsoleOpen) {
+                    event.preventDefault();
+                    toggleChatUI(); 
+                    return; 
+                }
+            }
+
+            if (event.code === 'Escape') {
+                event.preventDefault(); 
+                const homeMenuOverlay = document.getElementById('homeMenuOverlay');
+                const helpBox = document.getElementById('helpBox');
+                const settingsOverlay = document.getElementById('settingsOverlay');
+                const inventoryOverlay = document.getElementById('inventoryOverlay'); 
+                const chatMessagesDiv = document.getElementById('chatMessages');
+                const consoleContainer = document.getElementById('consoleContainer');
+
+                if (settingsOverlay.style.display === 'flex') {
+                    settingsOverlay.style.display = 'none';
+                    updateMenuBackgroundOverlay(); 
+                } else if (helpBox.style.display === 'block') {
+                    helpBox.style.display = 'none';
+                    updateMenuBackgroundOverlay(); 
+                } else if (inventoryOverlay.style.display === 'flex') { 
+                    toggleInventoryMenu(); 
+                } else if (chatBar.style.display === 'block' || chatMessagesDiv.style.display === 'flex') { 
+                    toggleChatUI();
+                } else if (consoleContainer.style.display === 'flex') { // Close console first
+                    toggleConsole();
+                } else {
+                    toggleHomeMenu();
+                }
+                updateCursor(); // Update cursor visibility after closing a menu
+                return;
+            }
+            
+            // --- SHIFT LOCK TOGGLE ---
+            if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') {
+                if (isShiftLockEnabled && !isChatting && !isConsoleOpen) { // Check if console is open
+                    isShiftLockActive = !isShiftLockActive; 
+                    if (isShiftLockActive) {
+                        rotation.y = character.rotation.y; 
+                    }
+                    updateCursor();
+                }
+            }
+
+            // --- MOVEMENT AND HOTBAR LOGIC (only if no major UI is open) ---
+            if (!isChatting && !isConsoleOpen && 
+                document.getElementById('homeMenuOverlay').style.display !== 'flex' &&
+                document.getElementById('settingsOverlay').style.display !== 'flex' &&
+                document.getElementById('helpBox').style.display !== 'block' &&
+                document.getElementById('inventoryOverlay').style.display !== 'flex' ) { // Explicitly check all major overlays
+                switch (event.code) {
+                    case 'KeyW':
+                        moveForward = true;
+                        break;
+                    case 'KeyA':
+                        moveLeft = true;
+                        break;
+                    case 'KeyS':
+                        moveBackward = true;
+                        break;
+                    case 'KeyD':
+                        moveRight = true;
+                        break;
+                    case 'Space':
+                        jump = true; 
+                        break;
+                    case 'Digit1':
+                    case 'Digit2':
+                    case 'Digit3':
+                    case 'Digit4':
+                    case 'Digit5':
+                    case 'Digit6':
+                    case 'Digit7':
+                    case 'Digit8':
+                    case 'Digit9':
+                        const slotNumber = parseInt(event.key); 
+                        if (slotNumber >= 1 && slotNumber <= hotbarItems.length) {
+                            if (slotNumber === activeHotbarSlot) {
+                                activeHotbarSlot = 0; 
+                            } else {
+                                activeHotbarSlot = slotNumber;
+                            }
+                            updateHotbarUI();
+                        }
+                        break;
+                }
+            }
+        }
+        function onKeyUp(event) {
+            switch (event.code) {
+                case 'KeyW':
+                    moveForward = false;
+                    break;
+                case 'KeyA':
+                    moveLeft = false;
+                    break;
+                case 'KeyS':
+                    moveBackward = false;
+                    break;
+                case 'KeyD':
+                    moveRight = false; 
+                    break;
+            }
+        }
+        function onMouseDown(event) {
+            if (event.button === 2) { 
+                isRightMouseDown = true;
+            } else if (event.button === 0) { 
+                const homeMenuOpen = document.getElementById('homeMenuOverlay').style.display === 'flex';
+                const helpBoxOpen = document.getElementById('helpBox').style.display === 'block';
+                const settingsOverlayOpen = document.getElementById('settingsOverlay').style.display === 'flex';
+                const inventoryOverlayOpen = document.getElementById('inventoryOverlay').style.display === 'flex'; 
+                const chatUIOpen = document.getElementById('chatBar').style.display === 'block';
+                const consoleOpen = document.getElementById('consoleContainer').style.display === 'flex'; // Check console state
+
+                if (!homeMenuOpen && !helpBoxOpen && !settingsOverlayOpen && !inventoryOverlayOpen && !chatUIOpen && !consoleOpen) { // Add consoleOpen check
+                    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+                    raycaster.setFromCamera(mouse, camera);
+
+                    // Removed build and remove tool logic
+                }
+            }
+        }
+        function onMouseUp(event) {
+            if (event.button === 2) {
+                isRightMouseDown = false;
+            }
+        }
+        function onMouseMove(event) {
+            if (isTouchDevice || isConsoleOpen || isChatting) return; // Add console and chat check to disable camera mousemove
+
+            const customCursor = document.getElementById('customCursor');
+
+            if (!isShiftLockActive) {
+                customCursor.style.left = event.clientX + 'px';
+                customCursor.style.top = event.clientY + 'px';
+            }
+            
+            if (isRightMouseDown || isShiftLockActive) {
+                rotation.y -= event.movementX * mouseSensitivity; 
+                rotation.x -= event.movementY * mouseSensitivity; 
+                rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, rotation.x));
+                rotation.y = normalizeAngle(rotation.y); 
+            }
+        }
+        function onMouseWheel(event) {
+            if (isConsoleOpen || isChatting) return; // Add console and chat check to disable camera zoom
+
+            const zoomSpeed = 0.1;
+            cameraOffset.z += event.deltaY * zoomSpeed;
+            cameraOffset.z = Math.max(5, Math.min(30, cameraOffset.z)); 
+            updateCameraPosition();
+        }
+        function updateCameraPosition() {
+            const targetLookAt = character.position.clone().add(new THREE.Vector3(0, CHARACTER_HEIGHT * 0.8, 0));
+
+            const offset = cameraOffset.clone();
+            offset.applyAxisAngle(new THREE.Vector3(1, 0, 0), rotation.x); 
+            offset.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotation.y); 
+            camera.position.copy(character.position).add(offset);
+            camera.lookAt(targetLookAt);
+        }
+        function checkBlockCollisions() {
+            const characterMinX = character.position.x - CHARACTER_HALF_WIDTH;
+            const characterMaxX = character.position.x + CHARACTER_HALF_WIDTH;
+            const characterMinY = character.position.y;
+            const characterMaxY = character.position.y + CHARACTER_HEIGHT;
+            const characterMinZ = character.position.z - CHARACTER_HALF_WIDTH;
+            const characterMaxZ = character.position.z + CHARACTER_HALF_WIDTH;
+
+            const characterBox = new THREE.Box3(
+                new THREE.Vector3(characterMinX, characterMinY, characterMinZ),
+                new THREE.Vector3(characterMaxX, characterMaxY, characterMaxZ)
+            );
+
+            // Include imported map objects in collision detection
+            const objectsForCollision = [scene.getObjectByName('baseplate')];
+            if (importedMapGroup) {
+                importedMapGroup.traverse(obj => {
+                    if (obj.isMesh && obj.name !== 'character') { // Ensure it's a mesh and not the player character itself
+                        objectsForCollision.push(obj);
+                    }
+                });
+            }
+            // Filter out any undefined/null objects
+            const actualCollisionObjects = objectsForCollision.filter(Boolean);
+
+            isOnGround = false; 
+
+            for (const obj of actualCollisionObjects) {
+                const blockBox = new THREE.Box3().setFromObject(obj);
+
+                if (characterBox.intersectsBox(blockBox)) {
+                    const overlapX = Math.min(characterMaxX, blockBox.max.x) - Math.max(characterMinX, blockBox.min.x);
+                    const overlapY = Math.min(characterMaxY, blockBox.max.y) - Math.max(characterMinY, blockBox.min.y);
+                    const overlapZ = Math.min(characterMaxZ, blockBox.max.z) - Math.max(characterMinZ, blockBox.min.z);
+
+                    const minOverlap = Math.min(overlapX, overlapY, overlapZ);
+                    const epsilon = 0.01; 
+
+                    if (minOverlap === overlapY) {
+                        if (velocity.y <= 0) { 
+                            if (characterMinY <= blockBox.max.y + epsilon) { 
+                                character.position.y = blockBox.max.y; 
+                                velocity.y = 0;
+                                isOnGround = true; 
+                                if (isJumping) { 
+                                    isJumping = false;
+                                    if (animationActions.jump && currentActionName === 'jump') {
+                                        animationActions.jump.stop(); 
+                                        animationActions.jump.setEffectiveWeight(0); 
+                                    }
+                                    const isCurrentlyMoving = (moveForward || moveBackward || moveLeft || moveRight || thumbstickVector.lengthSq() > 0);
+                                    if (isCurrentlyMoving) {
+                                        if (mixer && animationActions.walk) fadeToAnimation('walk', 0.1);
+                                    } else {
+                                        if (mixer && animationActions.idle) fadeToAnimation('idle', 0.1);
+                                    }
+                                }
+                            } else { 
+                                if (characterMaxY >= blockBox.min.y - epsilon) { 
+                                    character.position.y = blockBox.min.y - CHARACTER_HEIGHT; 
+                                    velocity.y = 0; 
+                                }
+                            }
+                        } else if (minOverlap === overlapX) {
+                            if (character.position.x < blockBox.getCenter(new THREE.Vector3()).x) {
+                                character.position.x -= overlapX;
+                            } else {
+                                character.position.x += overlapX;
+                            }
+                            horizontalVelocityX = 0; 
+                        } else if (minOverlap === overlapZ) {
+                            if (character.position.z < blockBox.getCenter(new THREE.Vector3()).z) {
+                                character.position.z -= overlapZ;
+                            } else {
+                                character.position.z += overlapZ;
+                            }
+                            horizontalVelocityZ = 0; 
+                        }
+
+                        characterBox.set(
+                            new THREE.Vector3(character.position.x - CHARACTER_HALF_WIDTH, character.position.y, character.position.z - CHARACTER_HALF_WIDTH),
+                            new THREE.Vector3(character.position.x + CHARACTER_HALF_WIDTH, character.position.y + CHARACTER_HEIGHT, character.position.z + CHARACTER_HALF_WIDTH)
+                        );
+                    }
+                }
+            }
+        }
+        function animate(currentTime) {
+            const animationFrameId = requestAnimationFrame(animate);
+            if (currentTime - lastFrameTime < frameInterval) {
+                return;
+            }
+            lastFrameTime = currentTime - currentTime % frameInterval;
+
+            const delta = Math.min(clock.getDelta(), 0.1);
+
+            if (mixer) {
+                mixer.update(delta);
+            }
+
+            velocity.y += gravity * delta;
+
+            direction.set(0, 0, 0); 
+
+            if (!isConsoleOpen && !isChatting) { // Only allow movement if console or chat is not open
+                if (moveForward) { direction.z -= 1; }
+                if (moveBackward) { direction.z += 1; }
+                if (moveLeft) { direction.x -= 1; }
+                if (moveRight) { direction.x += 1; }
+
+                direction.x += thumbstickVector.x;
+                direction.z += thumbstickVector.y; 
+            }
+
+            isMovingHorizontally = (direction.x !== 0 || direction.z !== 0);
+
+            if (direction.lengthSq() > 0) { 
+                direction.normalize();
+                if (isShiftLockActive) {
+                    direction.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotation.y); 
+                } else {
+                    direction.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotation.y); 
+                }
+            }
+            
+
+            horizontalVelocityX = direction.x * speed;
+            horizontalVelocityZ = direction.z * speed;
+
+            if (isShiftLockActive) {
+                character.rotation.y = rotation.y; 
+            } else {
+                if (direction.x !== 0 || direction.z !== 0) {
+                    const targetRotation = Math.atan2(-direction.x, -direction.z);
+                    let rotationDiff = targetRotation - character.rotation.y;
+                    if (rotationDiff > Math.PI) rotationDiff -= Math.PI * 2;
+                    if (rotationDiff < -Math.PI) rotationDiff += Math.PI * 2;
+                    character.rotation.y += rotationDiff * rotationSpeed;
+                }
+            }
+
+            if (jump && isOnGround && !isFalling && !isRespawning && !isConsoleOpen && !isChatting) { // Only allow jump if console/chat not open
+                velocity.y = 15; 
+                isJumping = true;
+                isOnGround = false; 
+                if (jumpSound) {
+                    playSound(jumpSound, false, 0.5);
+                }
+                if (animationActions.jump) {
+                    fadeToAnimation('jump', 0.1); 
+                } 
+                jump = false; 
+            }
+
+            if (!isFalling) { 
+                if (isJumping) {
+                } else if (isMovingHorizontally) {
+                    fadeToAnimation('walk', 0.2); 
+                } else {
+                    fadeToAnimation('idle', 0.2); 
+                }
+            } else {
+                if (currentActionName !== 'idle' && animationActions.idle) {
+                    fadeToAnimation('idle', 0.2);
+                }
+            }
+
+            const shouldPlayWalkSound = walkSoundBuffer && !isJumping && !isFalling && isOnGround && isMovingHorizontally && !isConsoleOpen && !isChatting; // Add console/chat check
+            const shouldStopWalkSound = (!isMovingHorizontally || isJumping || isFalling || !isOnGround || isConsoleOpen || isChatting); // Add console/chat check
+
+            if (shouldPlayWalkSound && !isWalkSoundPlaying) {
+                const newWalkSoundSource = playSound(walkSoundBuffer, true, 0.7, 1.5);
+                if (newWalkSoundSource) {
+                    walkSoundSource = newWalkSoundSource;
+                    isWalkSoundPlaying = true;
+                } else {
+                    isWalkSoundPlaying = false; 
+                }
+            } else if (shouldStopWalkSound && isWalkSoundPlaying) {
+                stopSound(walkSoundSource);
+                walkSoundSource = null;
+                isWalkSoundPlaying = false;
+            }
+
+            character.position.x += horizontalVelocityX * delta;
+            character.position.z += horizontalVelocityZ * delta;
+            character.position.y += velocity.y * delta; 
+
+            if (currentChatBubble) {
+                updateChatBubblePosition();
+                if (performance.now() > currentChatBubble.expirationTime) {
+                    document.getElementById('gameContainer').removeChild(currentChatBubble.element);
+                    currentChatBubble = null;
+                }
+            }
+
+            let shouldStartFallingToDeath = false;
+            const isBelowWorldThreshold = character.position.y < -50; 
+
+            if (!isFalling && !isRespawning) {
+                if (isBelowWorldThreshold) { 
+                    shouldStartFallingToDeath = true;
+                }
+            }
+
+            if (shouldStartFallingToDeath) {
+                isFalling = true;
+                fallStartTime = currentTime;
+                if (mixer && animationActions.idle) fadeToAnimation('idle', 0);
+                moveForward = moveBackward = moveLeft = moveRight = false; 
+                thumbstickVector.set(0,0); 
+                isMovingHorizontally = false; 
+                horizontalVelocityX = 0; 
+                horizontalVelocityZ = 0; 
+            }
+
+            if (!isFalling) { 
+                checkBlockCollisions(); 
+            }
+
+            if (isRespawning) {
+                if (performance.now() - respawnStartTime >= RESPAWN_COOLDOWN) {
+                    character.position.set(0, 1.5, 15); 
+                    character.visible = true;
+                    if (characterModel) characterModel.visible = true;
+                    document.getElementById('healthBar').style.backgroundColor = '#00FF00'; 
+                    document.getElementById('healthBar').style.width = '100%'; 
+                    velocity.y = 0; 
+                    isFalling = false; 
+                    isJumping = false; 
+                    isOnGround = true; 
+                    isRespawning = false; 
+                    horizontalVelocityX = 0; 
+                    horizontalVelocityZ = 0; 
+                    isMovingHorizontally = false; 
+
+                    if (deathSound) {
+                        playSound(deathSound, false, 1.0); 
+                    }
+                    
+                    stopSound(walkSoundSource);
+                    walkSoundSource = null;
+                    isWalkSoundPlaying = false;
+
+                    if (mixer && animationActions.idle) fadeToAnimation('idle', 0);
+
+                    toggleHomeMenu(); 
+                }
+            } else if (isFalling) { 
+                 document.getElementById('healthBar').style.backgroundColor = '#000000'; 
+                 document.getElementById('healthBar').style.width = '0%'; 
+                 if (currentTime - fallStartTime >= FALL_DURATION) {
+                    isRespawning = true;
+                    respawnStartTime = performance.now(); 
+                    character.visible = false; 
+                    if (characterModel) characterModel.visible = false;
+                    if (deathSound) {
+                        playSound(deathSound, false, 1.0); 
+                    }
+                    
+                    stopSound(walkSoundSource);
+                    walkSoundSource = null;
+                    isWalkSoundPlaying = false;
+
+                    if (mixer && animationActions.idle) fadeToAnimation('idle', 0);
+
+                    toggleHomeMenu(); 
+                }
+            }
+
+            if (characterModel && characterModel.position.y !== 0) {
+                characterModel.position.y = 0; 
+            }
+
+            if (selectionBoxHelper) {
+                selectionBoxHelper.update();
+            }
+
+            updateCameraPosition();
+            renderer.render(scene, camera);
+        }
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+        function toggleHelpBox() {
+            const helpBox = document.getElementById('helpBox');
+            helpBox.style.display = helpBox.style.display === 'none' ? 'block' : 'none';
+            updateMenuBackgroundOverlay(); 
+        }
+
+        function resetCharacter() {
+            character.position.set(0, 1.5, 15); 
+            character.visible = true;
+            if (characterModel) characterModel.visible = true;
+
+            document.getElementById('healthBar').style.backgroundColor = '#00FF00'; 
+            document.getElementById('healthBar').style.width = '100%'; 
+
+            velocity.y = 0; 
+            isJumping = false; 
+            isOnGround = true; 
+            isFalling = false; 
+            isRespawning = false; 
+            horizontalVelocityX = 0; 
+            horizontalVelocityZ = 0; 
+            isMovingHorizontally = false; 
+
+            moveForward = moveBackward = moveLeft = moveRight = false; 
+            thumbstickVector.set(0,0); 
+
+            if (deathSound) {
+                playSound(deathSound, false, 1.0); 
+            }
+            
+            stopSound(walkSoundSource);
+            walkSoundSource = null;
+            isWalkSoundPlaying = false;
+
+            if (mixer && animationActions.idle) fadeToAnimation('idle', 0);
+
+            toggleHomeMenu(); 
+        }
+
+        function initializeHomeMenu() {
+            const homeMenuIcon = document.getElementById('homeMenuIcon');
+            const homeMenuOverlay = document.getElementById('homeMenuOverlay');
+            const leaveGameBtn = document.getElementById('leaveGameBtn');
+            const settingsBtn = document.getElementById('settingsBtn');
+            const helpBtn = document.getElementById('helpBtn');
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            const resumeGameBtn = document.getElementById('resumeGameBtn');
+            const resetCharacterBtn = document.getElementById('resetCharacterBtn'); 
+
+            homeMenuIcon.addEventListener('click', toggleHomeMenu); 
+            if (isTouchDevice) {
+                homeMenuIcon.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    toggleHomeMenu();
+                });
+            }
+
+            resumeGameBtn.addEventListener('click', toggleHomeMenu);
+            if (isTouchDevice) {
+                resumeGameBtn.addEventListener('touchstart', (e) => { e.preventDefault(); toggleHomeMenu(); });
+            }
+
+            leaveGameBtn.addEventListener('click', () => {
+                window.location.href = 'https://folklore1.neocities.org/';
+            });
+            if (isTouchDevice) {
+                leaveGameBtn.addEventListener('touchstart', (e) => { e.preventDefault(); window.location.href = 'https://folklore1.neocities.org/'; });
+            }
+
+            settingsBtn.addEventListener('click', () => {
+                document.getElementById('homeMenuOverlay').style.display = 'none'; 
+                document.getElementById('homeMenuOverlay').classList.remove('open', 'closing');
+                document.getElementById('homeMenuIcon').style.backgroundImage = "url('Hamburger@2x.png')"; 
+                
+                document.getElementById('helpBox').style.display = 'none'; 
+                document.getElementById('chatBar').style.display = 'none'; 
+                document.getElementById('chatMessages').style.display = 'none';
+                document.getElementById('chatButton').style.backgroundImage = "url('Chat@2x.png')"; 
+                document.getElementById('inventoryOverlay').style.display = 'none'; 
+                document.getElementById('inventoryButton').style.backgroundImage = "url('inventoryOff@2x.png')"; 
+                document.getElementById('consoleContainer').style.display = 'none'; // Close console
+                isConsoleOpen = false;
+                
+                document.getElementById('settingsOverlay').style.display = 'flex';
+                updateMenuBackgroundOverlay(); 
+                updateCursor(); // Update cursor after state change
+            });
+            if (isTouchDevice) {
+                settingsBtn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    document.getElementById('homeMenuOverlay').style.display = 'none';
+                    document.getElementById('homeMenuOverlay').classList.remove('open', 'closing');
+                    document.getElementById('homeMenuIcon').style.backgroundImage = "url('Hamburger@2x.png')";
+                    document.getElementById('helpBox').style.display = 'none';
+                    document.getElementById('chatBar').style.display = 'none';
+                    document.getElementById('chatMessages').style.display = 'none';
+                    document.getElementById('chatButton').style.backgroundImage = "url('Chat@2x.png')";
+                    document.getElementById('inventoryOverlay').style.display = 'none';
+                    document.getElementById('inventoryButton').style.backgroundImage = "url('inventoryOff@2x.png')"; 
+                    document.getElementById('consoleContainer').style.display = 'none'; // Close console
+                    isConsoleOpen = false;
+
+                    document.getElementById('settingsOverlay').style.display = 'flex';
+                    updateMenuBackgroundOverlay();
+                    updateCursor(); // Update cursor after state change
+                });
+            }
+
+            helpBtn.addEventListener('click', () => {
+                document.getElementById('homeMenuOverlay').style.display = 'none'; 
+                document.getElementById('homeMenuOverlay').classList.remove('open', 'closing');
+                document.getElementById('homeMenuIcon').style.backgroundImage = "url('Hamburger@2x.png')"; 
+                document.getElementById('settingsOverlay').style.display = 'none'; 
+                document.getElementById('chatBar').style.display = 'none'; 
+                document.getElementById('chatMessages').style.display = 'none';
+                document.getElementById('chatButton').style.backgroundImage = "url('Chat@2x.png')"; 
+                document.getElementById('inventoryOverlay').style.display = 'none'; 
+                document.getElementById('inventoryButton').style.backgroundImage = "url('inventoryOff@2x.png')"; 
+                document.getElementById('consoleContainer').style.display = 'none'; // Close console
+                isConsoleOpen = false;
+
+                document.getElementById('helpBox').style.display = 'block';
+                updateMenuBackgroundOverlay(); 
+                updateCursor(); // Update cursor after state change
+            });
+            if (isTouchDevice) {
+                helpBtn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    document.getElementById('homeMenuOverlay').style.display = 'none';
+                    document.getElementById('homeMenuOverlay').classList.remove('open', 'closing');
+                    document.getElementById('homeMenuIcon').style.backgroundImage = "url('Hamburger@2x.png')";
+                    document.getElementById('settingsOverlay').style.display = 'none';
+                    document.getElementById('chatBar').style.display = 'none';
+                    document.getElementById('chatMessages').style.display = 'none';
+                    document.getElementById('chatButton').style.backgroundImage = "url('Chat@2x.png')";
+                    document.getElementById('inventoryOverlay').style.display = 'none';
+                    document.getElementById('inventoryButton').style.backgroundImage = "url('inventoryOff@2x.png')"; 
+                    document.getElementById('consoleContainer').style.display = 'none'; // Close console
+                    isConsoleOpen = false;
+
+                    document.getElementById('helpBox').style.display = 'block';
+                    updateMenuBackgroundOverlay();
+                    updateCursor(); // Update cursor after state change
+                });
+            }
+
+            fullscreenBtn.addEventListener('click', () => {
+                toggleFullscreen(); 
+                toggleHomeMenu(); 
+            });
+            if (isTouchDevice) {
+                fullscreenBtn.addEventListener('touchstart', (e) => { e.preventDefault(); toggleFullscreen(); toggleHomeMenu(); });
+            }
+
+            resetCharacterBtn.addEventListener('click', resetCharacter);
+            if (isTouchDevice) {
+                resetCharacterBtn.addEventListener('touchstart', (e) => { e.preventDefault(); resetCharacter(); });
+            }
+        }
+
+        function updateMenuBackgroundOverlay() {
+            const homeMenuOverlay = document.getElementById('homeMenuOverlay');
+            const settingsOverlay = document.getElementById('settingsOverlay');
+            const helpBox = document.getElementById('helpBox');
+            const inventoryOverlay = document.getElementById('inventoryOverlay'); 
+            const menuBackgroundOverlay = document.getElementById('menuBackgroundOverlay');
+            const consoleContainer = document.getElementById('consoleContainer');
+
+            if (homeMenuOverlay.style.display === 'flex' || 
+                settingsOverlay.style.display === 'flex' || 
+                helpBox.style.display === 'block' ||
+                inventoryOverlay.style.display === 'flex' ||
+                consoleContainer.style.display === 'flex') { // Include console in overlay check
+                menuBackgroundOverlay.style.display = 'block';
+            } else {
+                menuBackgroundOverlay.style.display = 'none';
+            }
+        }
+
+        function toggleHomeMenu() {
+            const homeMenuOverlay = document.getElementById('homeMenuOverlay');
+            const homeMenuIcon = document.getElementById('homeMenuIcon');
+            const inventoryOverlay = document.getElementById('inventoryOverlay'); 
+            const settingsOverlay = document.getElementById('settingsOverlay');
+            const helpBox = document.getElementById('helpBox');
+            const chatBar = document.getElementById('chatBar');
+            const chatMessagesDiv = document.getElementById('chatMessages');
+            const chatButton = document.getElementById('chatButton');
+            const inventoryButton = document.getElementById('inventoryButton'); 
+            const consoleContainer = document.getElementById('consoleContainer'); // Get console
+
+            if (homeMenuOverlay.classList.contains('open')) {
+                homeMenuOverlay.classList.remove('open');
+                homeMenuOverlay.classList.add('closing');
+                homeMenuIcon.style.backgroundImage = "url('Hamburger@2x.png')"; 
+                
+                setTimeout(() => {
+                    homeMenuOverlay.classList.remove('closing');
+                    homeMenuOverlay.style.display = 'none';
+                    updateMenuBackgroundOverlay(); 
+                    updateCursor(); // Update cursor after state change
+                }, 200); 
+            } else {
+                // Close other conflicting UIs
+                settingsOverlay.style.display = 'none';
+                helpBox.style.display = 'none';
+                chatBar.style.display = 'none';
+                chatMessagesDiv.style.display = 'none';
+                chatButton.style.backgroundImage = "url('Chat@2x.png')"; 
+                inventoryOverlay.style.display = 'none'; 
+                inventoryButton.style.backgroundImage = "url('inventoryOff@2x.png')"; 
+                consoleContainer.style.display = 'none'; // Close console
+                isConsoleOpen = false;
+
+                homeMenuOverlay.style.display = 'flex';
+                homeMenuOverlay.classList.add('open');
+                updateMenuBackgroundOverlay(); 
+                homeMenuIcon.style.backgroundImage = "url('HamburgerDown@2x.png')"; 
+                updateCursor(); // Update cursor after state change
+            }
+        }
+
+        function applyResolutionScale(scale) {
+            currentResolutionScale = parseFloat(scale); 
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio * currentResolutionScale); 
+            camera.aspect = window.innerWidth / window.innerHeight; 
+            camera.updateProjectionMatrix();
+        }
+
+        function initializeSettingsUI() {
+            const settingsOverlay = document.getElementById('settingsOverlay');
+            const closeSettingsMenuBtn = document.getElementById('closeSettingsMenu');
+            const resolutionScaleSelect = document.getElementById('resolutionScale');
+            const shiftLockToggle = document.getElementById('shiftLockToggle');
+
+            closeSettingsMenuBtn.addEventListener('click', () => {
+                settingsOverlay.style.display = 'none';
+                updateMenuBackgroundOverlay(); 
+                updateCursor(); // Update cursor after state change
+            });
+            if (isTouchDevice) {
+                closeSettingsMenuBtn.addEventListener('touchstart', (e) => { e.preventDefault(); settingsOverlay.style.display = 'none'; updateMenuBackgroundOverlay(); updateCursor(); }); 
+            }
+
+            resolutionScaleSelect.addEventListener('change', (event) => {
+                applyResolutionScale(event.target.value);
+            });
+
+            shiftLockToggle.addEventListener('change', (event) => {
+                isShiftLockEnabled = event.target.value === 'on';
+                if (!isShiftLockEnabled && isShiftLockActive) {
+                    isShiftLockActive = false;
+                    updateCursor();
+                }
+            });
+
+            resolutionScaleSelect.value = currentResolutionScale.toString();
+            shiftLockToggle.value = isShiftLockEnabled ? 'on' : 'off';
+        }
+
+        function initializeChatUI() {
+            const chatButton = document.getElementById('chatButton'); 
+            const chatBar = document.getElementById('chatBar');
+
+            chatButton.addEventListener('click', toggleChatUI);
+            if (isTouchDevice) {
+                chatButton.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    toggleChatUI();
+                });
+            }
+
+            chatBar.addEventListener('focus', () => {
+                isChatting = true;
+                updateCursor(); // Cursor will become default text input
+            });
+
+            chatBar.addEventListener('blur', () => {
+                isChatting = false;
+                updateCursor(); // Cursor will revert to game cursor
+            });
+
+            chatBar.addEventListener('keypress', event => {
+                if (event.key === 'Enter' && chatBar.value.trim()) {
+                    const message = chatBar.value.trim();
+                    addChatMessage(`${username}: ${message}`);
+                    chatBar.value = '';
+                }
+            });
+        }
+
+        function toggleChatUI() {
+            const chatBar = document.getElementById('chatBar');
+            const chatMessagesDiv = document.getElementById('chatMessages');
+            const chatButton = document.getElementById('chatButton');
+            const homeMenuOverlay = document.getElementById('homeMenuOverlay');
+            const settingsOverlay = document.getElementById('settingsOverlay');
+            const helpBox = document.getElementById('helpBox');
+            const inventoryOverlay = document.getElementById('inventoryOverlay'); 
+            const homeMenuIcon = document.getElementById('homeMenuIcon'); 
+            const inventoryButton = document.getElementById('inventoryButton'); 
+            const consoleContainer = document.getElementById('consoleContainer'); // Get console
+
+            if (chatBar.style.display === 'block') {
+                chatBar.style.display = 'none';
+                chatMessagesDiv.style.display = 'none';
+                isChatting = false;
+                chatBar.blur(); 
+                chatButton.style.backgroundImage = "url('Chat@2x.png')"; 
+                updateMenuBackgroundOverlay(); 
+                updateCursor(); // Update cursor after state change
+            } else {
+                // Close other conflicting UIs
+                homeMenuOverlay.style.display = 'none';
+                homeMenuOverlay.classList.remove('open', 'closing');
+                homeMenuIcon.style.backgroundImage = "url('Hamburger@2x.png')"; 
+
+                settingsOverlay.style.display = 'none';
+                helpBox.style.display = 'none';
+                inventoryOverlay.style.display = 'none'; 
+                inventoryButton.style.backgroundImage = "url('inventoryOff@2x.png')"; 
+                consoleContainer.style.display = 'none'; // Close console
+                isConsoleOpen = false;
+
+                chatBar.style.display = 'block';
+                chatMessagesDiv.style.display = 'flex'; 
+                chatBar.focus();
+                isChatting = true;
+                chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
+                chatButton.style.backgroundImage = "url('chatOn@2x.png')"; 
+                updateMenuBackgroundOverlay(); 
+                updateCursor(); // Update cursor after state change
+            }
+        }
+        
+        function displayChatBubble(message) {
+            if (currentChatBubble) {
+                document.getElementById('gameContainer').removeChild(currentChatBubble.element);
+                currentChatBubble = null;
+            }
+
+            const bubbleContainer = document.createElement('div');
+            bubbleContainer.id = 'chatBubbleContainer'; 
+            const bubbleText = document.createElement('div');
+            bubbleText.className = 'chatBubble';
+            bubbleText.textContent = message;
+
+            bubbleContainer.appendChild(bubbleText);
+            document.getElementById('gameContainer').appendChild(bubbleContainer);
+
+            currentChatBubble = {
+                element: bubbleContainer,
+                expirationTime: performance.now() + CHAT_BUBBLE_DURATION,
+            };
+
+            updateChatBubblePosition();
+        }
+
+        function updateChatBubblePosition() {
+            if (!currentChatBubble || !character || !camera) return;
+
+            const headPosition = character.position.clone().add(new THREE.Vector3(0, CHARACTER_HEIGHT + 0.5, 0));
+
+            headPosition.project(camera);
+
+            const x = (headPosition.x * 0.5 + 0.5) * window.innerWidth;
+            const y = (-headPosition.y * 0.5 + 0.5) * window.innerHeight;
+
+            currentChatBubble.element.style.left = `${x}px`;
+            currentChatBubble.element.style.top = `${y}px`;
+            currentChatBubble.element.style.transform = `translate(-50%, -100%)`; 
+        }
+
+        function addChatMessage(message) {
+            chatMessages.push(message);
+            if (chatMessages.length > 6) { 
+                chatMessages = chatMessages.slice(-6);
+            }
+            const chatMessagesDiv = document.getElementById('chatMessages');
+            chatMessagesDiv.innerHTML = '';
+            const playerNameDiv = document.getElementById('playerNameTopbar');
+            const playerColor = playerNameDiv ? playerNameDiv.style.color : 'white'; 
+            
+            for (const msg of chatMessages) {
+                const messageElement = document.createElement('div');
+                messageElement.className = 'chatMessage';
+                
+                if (msg.startsWith(`${username}:`)) {
+                    const parts = msg.split(':');
+                    messageElement.innerHTML = `<span style="color: white; text-shadow: none;">• </span><span style="color: ${parts[0].trim() === username ? playerColor : 'white'}; text-shadow: none;">${parts[0]}</span>:${parts[1]}`;
+                    
+                    if (parts[0].trim() === username) {
+                        displayChatBubble(parts[1].trim()); 
+                    }
+                } else {
+                    messageElement.textContent = msg;
+                    messageElement.style.color = 'white'; 
+                }
+                chatMessagesDiv.appendChild(messageElement);
+            }
+            chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight; 
+        }
+
+        function initializeInventoryUI() {
+            const inventoryButton = document.getElementById('inventoryButton');
+            const inventoryOverlay = document.getElementById('inventoryOverlay');
+            const closeInventoryMenuBtn = document.getElementById('closeInventoryMenu');
+            const menuBackgroundOverlay = document.getElementById('menuBackgroundOverlay');
+
+            inventoryButton.addEventListener('click', toggleInventoryMenu);
+            if (isTouchDevice) {
+                inventoryButton.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    toggleInventoryMenu();
+                });
+            }
+
+            closeInventoryMenuBtn.addEventListener('click', toggleInventoryMenu);
+            if (isTouchDevice) {
+                closeInventoryMenuBtn.addEventListener('touchstart', (e) => { e.preventDefault(); toggleInventoryMenu(); });
+            }
+        }
+
+        function toggleInventoryMenu() {
+            const inventoryOverlay = document.getElementById('inventoryOverlay');
+            const inventoryButton = document.getElementById('inventoryButton');
+            const homeMenuOverlay = document.getElementById('homeMenuOverlay');
+            const settingsOverlay = document.getElementById('settingsOverlay');
+            const helpBox = document.getElementById('helpBox');
+            const chatBar = document.getElementById('chatBar');
+            const chatMessagesDiv = document.getElementById('chatMessages');
+            const homeMenuIcon = document.getElementById('homeMenuIcon');
+            const chatButton = document.getElementById('chatButton'); 
+            const consoleContainer = document.getElementById('consoleContainer'); // Get console
+
+            if (inventoryOverlay.style.display === 'flex') { 
+                inventoryOverlay.style.display = 'none';
+                inventoryButton.style.backgroundImage = "url('inventoryOff@2x.png')"; 
+                updateMenuBackgroundOverlay(); 
+                updateCursor(); // Update cursor after state change
+            } else { 
+                // Close other conflicting UIs
+                homeMenuOverlay.style.display = 'none';
+                homeMenuOverlay.classList.remove('open', 'closing');
+                homeMenuIcon.style.backgroundImage = "url('Hamburger@2x.png')";
+
+                settingsOverlay.style.display = 'none';
+                helpBox.style.display = 'none';
+                chatBar.style.display = 'none';
+                chatMessagesDiv.style.display = 'none';
+                chatButton.style.backgroundImage = "url('Chat@2x.png')";
+                
+                consoleContainer.style.display = 'none'; // Close console
+                isConsoleOpen = false;
+
+                inventoryOverlay.style.display = 'flex';
+                inventoryButton.style.backgroundImage = "url('inventoryOn@2x.png')";
+                
+                updateMenuBackgroundOverlay(); 
+                updateCursor(); // Update cursor after state change
+            }
+        }
+
+
+        function updateHotbarUI() {
+            for (let i = 1; i <= HOTBAR_SLOTS; i++) {
+                const slot = document.getElementById(`hotbarSlot-${i}`);
+                if (slot) {
+                    if (i === activeHotbarSlot) {
+                        slot.classList.add('active');
+                    } else {
+                        slot.classList.remove('active');
+                    }
+                }
+            }
+
+            if (activeHotbarSlot > 0 && activeHotbarSlot <= hotbarItems.length) {
+                currentActiveTool = hotbarItems[activeHotbarSlot - 1]; 
+            } else {
+                currentActiveTool = null; 
+            }
+
+            // Removed heldBlock visibility logic
+            updateCursor(); 
+        }
+
+        function initializeHotbarUI() {
+            const hotbarContainer = document.getElementById('hotbarContainer');
+            hotbarContainer.innerHTML = ''; 
+
+            hotbarItems.forEach((item, index) => {
+                const slotNumber = index + 1; 
+                const slot = document.createElement('div');
+                slot.className = 'hotbar-slot';
+                slot.id = `hotbarSlot-${slotNumber}`;
+                slot.innerHTML = `<span class="key-number">${slotNumber}</span>`;
+
+                const toolImage = document.createElement('img');
+                toolImage.src = item.icon; 
+                toolImage.className = 'tool-icon';
+                slot.appendChild(toolImage);
+                
+                slot.addEventListener('click', () => {
+                    if (activeHotbarSlot === slotNumber) {
+                        activeHotbarSlot = 0; 
+                    } else {
+                        activeHotbarSlot = slotNumber; 
+                    }
+                    updateHotbarUI();
+                });
+                if (isTouchDevice) {
+                    slot.addEventListener('touchstart', (e) => {
+                        e.preventDefault(); 
+                        if (activeHotbarSlot === slotNumber) {
+                            activeHotbarSlot = 0; 
+                        } else {
+                            activeHotbarSlot = slotNumber; 
+                        }
+                        updateHotbarUI();
+                    });
+                }
+                hotbarContainer.appendChild(slot);
+            });
+            
+            if (hotbarItems.length > 0) {
+                activeHotbarSlot = 0; 
+            } else {
+                activeHotbarSlot = 0; 
+            }
+
+            updateHotbarUI(); 
+        }
+        
+        function updateCursor() {
+            const customCursor = document.getElementById('customCursor');
+            const homeMenuOpen = document.getElementById('homeMenuOverlay').style.display === 'flex';
+            const settingsOpen = document.getElementById('settingsOverlay').style.display === 'flex';
+            const helpOpen = document.getElementById('helpBox').style.display === 'block';
+            const inventoryOpen = document.getElementById('inventoryOverlay').style.display === 'flex';
+
+            // If console or chat is open, or if any menu overlay (home, settings, help, inventory) is open,
+            // hide the custom game cursor. The browser's default cursor for text inputs will handle themselves.
+            if (isConsoleOpen || isChatting || homeMenuOpen || settingsOpen || helpOpen || inventoryOpen) {
+                customCursor.style.display = 'none';
+                document.body.style.cursor = 'default'; // Ensure body gets its default cursor
+                return;
+            }
+
+            // Otherwise, show the custom game cursor
+            customCursor.style.display = 'block';
+            document.body.style.cursor = 'none'; // Ensure game container has no native cursor
+
+            let cursorImage = '/cursor-1.png'; 
+            let cursorWidth = '27px';
+            let cursorHeight = '27px';
+
+            // If shift-lock is active, or if it's a touch device (where there's no mouse to track)
+            if (isShiftLockActive || isTouchDevice) {
+                cursorImage = shiftLockCursorImage; 
+                cursorWidth = '32px';
+                cursorHeight = '32px';
+                customCursor.style.left = '50%';
+                customCursor.style.top = '50%';
+            } else {
+                // When not shift-locked and not a touch device, cursor position is handled by onMouseMove.
+                // We clear these here to ensure they are re-set by onMouseMove or fixed if needed.
+                customCursor.style.left = '';
+                customCursor.style.top = '';
+            }
+            
+            customCursor.style.backgroundImage = `url('${cursorImage}')`;
+            customCursor.style.width = cursorWidth;
+            customCursor.style.height = cursorHeight;
+        }
+
+        function initializeMobileControls() {
+            const mobileControls = document.getElementById('mobileControls');
+            const thumbstickContainer = document.getElementById('thumbstickContainer');
+            const thumbstick = document.getElementById('thumbstick');
+            const jumpButton = document.getElementById('jumpButton');
+
+            if (!isTouchDevice) {
+                mobileControls.style.display = 'none';
+                return;
+            } else {
+                mobileControls.style.display = 'block';
+            }
+
+            const rect = thumbstickContainer.getBoundingClientRect();
+            thumbstickCenter = {
+                x: rect.left + rect.width / 2,
+                y: rect.top + rect.height / 2
+            };
+            thumbstickRadius = rect.width / 2; 
+
+            thumbstickContainer.addEventListener('touchstart', handleThumbstickStart, { passive: false });
+            thumbstickContainer.addEventListener('touchmove', handleThumbstickMove, { passive: false });
+            thumbstickContainer.addEventListener('touchend', handleThumbstickEnd, { passive: false });
+            thumbstickContainer.addEventListener('touchcancel', handleThumbstickEnd, { passive: false });
+
+            jumpButton.addEventListener('click', handleJumpButton);
+            jumpButton.addEventListener('touchstart', (e) => {
+                e.preventDefault(); 
+                handleJumpButton();
+            });
+        }
+
+        function handleThumbstickStart(e) {
+            e.preventDefault(); 
+            const touch = e.touches[0];
+            thumbstickTouched = true;
+            updateThumbstickPosition(touch.clientX, touch.clientY);
+        }
+
+        function handleThumbstickMove(e) {
+            e.preventDefault(); 
+            if (!isCameraDragging) return;
+
+            const touch = e.touches[0];
+            updateThumbstickPosition(touch.clientX, touch.clientY);
+        }
+
+        function handleThumbstickEnd(e) {
+            e.preventDefault(); 
+            thumbstickTouched = false;
+            thumbstickVector.set(0, 0); 
+            resetThumbstickPosition();
+        }
+
+        function updateThumbstickPosition(currentTouchX, currentTouchY) {
+            const thumbstick = document.getElementById('thumbstick');
+            const thumbstickContainer = document.getElementById('thumbstickContainer');
+            const containerRect = thumbstickContainer.getBoundingClientRect();
+            
+            const rawDx = currentTouchX - thumbstickCenter.x;
+            const rawDy = currentTouchY - thumbstickCenter.y;
+
+            const rawDistance = Math.sqrt(rawDx * rawDx + rawDy * rawDy);
+
+            let clampedDx = rawDx;
+            let clampedDy = rawDy;
+            if (rawDistance > thumbstickRadius) {
+                clampedDx = rawDx * thumbstickRadius / rawDistance;
+                clampedDy = rawDy * thumbstickRadius / rawDistance;
+            }
+
+            const visualX = (containerRect.width / 2) + clampedDx;
+            const visualY = (containerRect.height / 2) + clampedDy;
+
+            thumbstick.style.left = `${visualX}px`;
+            thumbstick.style.top = `${visualY}px`;
+
+            thumbstickVector.x = clampedDx / thumbstickRadius;
+            thumbstickVector.y = clampedDy / thumbstickRadius; 
+        }
+
+        function handleGameContainerTouchStart(e) {
+            const touchX = e.touches[0].clientX;
+            const touchY = e.touches[0].clientY;
+
+            const thumbstickRect = document.getElementById('thumbstickContainer').getBoundingClientRect();
+            const jumpButtonRect = document.getElementById('jumpButton').getBoundingClientRect();
+            const homeMenuIconRect = document.getElementById('homeMenuIcon').getBoundingClientRect();
+            const chatButtonRect = document.getElementById('chatButton').getBoundingClientRect(); 
+            const inventoryButtonRect = document.getElementById('inventoryButton').getBoundingClientRect(); 
+            const chatBarRect = document.getElementById('chatBar').getBoundingClientRect();
+            const chatMessagesRect = document.getElementById('chatMessages').getBoundingClientRect(); 
+            const hotbarSlots = document.querySelectorAll('.hotbar-slot');
+            const topbarRect = document.getElementById('topbar').getBoundingClientRect();
+            const moneyDisplayRect = document.getElementById('moneyDisplay').getBoundingClientRect(); 
+            const bottomLeftUIRect = document.getElementById('bottomLeftUI').getBoundingClientRect();
+            
+            const homeMenuOverlay = document.getElementById('homeMenuOverlay');
+            const settingsOverlay = document.getElementById('settingsOverlay');
+            const helpBox = document.getElementById('helpBox');
+            const inventoryOverlay = document.getElementById('inventoryOverlay'); 
+            const consoleContainer = document.getElementById('consoleContainer'); // Get console element
+
+
+            const isTouchOnUI = 
+                (touchX >= thumbstickRect.left && touchX <= thumbstickRect.right && touchY >= thumbstickRect.top && touchY <= thumbstickRect.bottom) ||
+                (touchX >= jumpButtonRect.left && touchX <= jumpButtonRect.right && touchY >= jumpButtonRect.top && touchY <= jumpButtonRect.bottom) ||
+                (touchX >= homeMenuIconRect.left && touchX <= homeMenuIconRect.right && touchY >= homeMenuIconRect.top && touchY <= homeMenuIconRect.bottom) ||
+                (touchX >= chatButtonRect.left && touchX <= chatButtonRect.right && touchY >= chatButtonRect.top && touchY <= chatButtonRect.bottom) || 
+                (touchX >= inventoryButtonRect.left && touchX <= inventoryButtonRect.right && touchY >= inventoryButtonRect.top && touchY <= inventoryButtonRect.bottom) || 
+                (chatBar.style.display === 'block' && touchX >= chatBarRect.left && touchX <= chatBarRect.right && touchY >= chatBarRect.top && touchY <= chatBarRect.bottom) || 
+                (chatMessagesDiv.style.display === 'flex' && touchX >= chatMessagesRect.left && touchX <= chatMessagesRect.right && touchY >= chatMessagesRect.top && touchY <= chatMessagesRect.bottom) || 
+                (touchX >= topbarRect.left && touchX <= topbarRect.right && touchY >= topbarRect.top && touchY <= topbarRect.bottom) || 
+                (homeMenuOverlay.style.display === 'flex' && touchX >= homeMenuOverlay.getBoundingClientRect().left && touchX <= homeMenuOverlay.getBoundingClientRect().right && touchY >= homeMenuOverlay.getBoundingClientRect().top && touchY <= homeMenuOverlay.getBoundingClientRect().bottom) ||
+                (settingsOverlay.style.display === 'flex' && touchX >= settingsOverlay.getBoundingClientRect().left && touchX <= settingsOverlay.getBoundingClientRect().right && touchY >= settingsOverlay.getBoundingClientRect().top && touchY <= settingsOverlay.getBoundingClientRect().bottom) ||
+                (helpBox.style.display === 'block' && touchX >= helpBox.getBoundingClientRect().left && touchX <= helpBox.getBoundingClientRect().right && touchY >= helpBox.getBoundingClientRect().top && touchY <= helpBox.getBoundingClientRect().bottom) ||
+                (inventoryOverlay.style.display === 'flex' && touchX >= inventoryOverlay.getBoundingClientRect().left && touchX <= inventoryOverlay.getBoundingClientRect().right && touchY >= inventoryOverlay.getBoundingClientRect().top && touchY <= inventoryOverlay.getBoundingClientRect().bottom) || 
+                (consoleContainer.style.display === 'flex' && touchX >= consoleContainer.getBoundingClientRect().left && touchX <= consoleContainer.getBoundingClientRect().right && touchY >= consoleContainer.getBoundingClientRect().top && touchY <= consoleContainer.getBoundingClientRect().bottom) || // Include console
+                (touchX >= bottomLeftUIRect.left && touchX <= bottomLeftUIRect.right && touchY >= bottomLeftUIRect.top && touchY <= bottomLeftUIRect.bottom) ||
+                Array.from(hotbarSlots).some(slot => {
+                    const slotRect = slot.getBoundingClientRect();
+                    return (touchX >= slotRect.left && touchX <= slotRect.right && touchY >= slotRect.top && touchY <= slotRect.bottom);
+                });
+
+            if (!isShiftLockActive && !isTouchOnUI) {
+                isCameraDragging = true;
+                lastTouchX = e.touches[0].clientX;
+                lastTouchY = e.touches[0].clientY;
+                e.preventDefault(); 
+            } else {
+                isCameraDragging = false; 
+            }
+        }
+
+        function handleGameContainerTouchMove(e) {
+            if (!isCameraDragging) return;
+            e.preventDefault(); 
+
+            const currentTouchX = e.touches[0].clientX;
+            const currentTouchY = e.touches[0].clientY;
+
+            const movementX = currentTouchX - lastTouchX;
+            const movementY = currentTouchY - lastTouchY;
+
+            rotation.y -= movementX * mouseSensitivity * 1.5; 
+            rotation.x -= movementY * mouseSensitivity * 1.5; 
+            rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, rotation.x));
+            rotation.y = normalizeAngle(rotation.y); 
+
+            lastTouchX = currentTouchX;
+            lastTouchY = currentTouchY;
+        }
+
+        function handleGameContainerTouchEnd(e) {
+            isCameraDragging = false;
+        }
+        
+        function normalizeAngle(angle) {
+            return angle % (2 * Math.PI);
+        }
+
+        function initializeStudioUI() {
+            const studioButton = document.getElementById('studioButton');
+            const rbxlFileInput = document.getElementById('rbxlFileInput');
+            const loadExampleMapButton = document.getElementById('loadExampleMapButton'); 
+
+            studioButton.addEventListener('click', () => {
+                rbxlFileInput.click(); 
+            });
+
+            if (isTouchDevice) {
+                studioButton.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    rbxlFileInput.click();
+                });
+            }
+
+            loadExampleMapButton.addEventListener('click', () => {
+                parseAndLoadRBXLX(defaultMapRBXLXContent); 
+            });
+
+            if (isTouchDevice) {
+                loadExampleMapButton.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    parseAndLoadRBXLX(defaultMapRBXLXContent);
+                });
+            }
+
+            rbxlFileInput.addEventListener('change', handleRbxlFileImport);
+        }
+
+        function handleRbxlFileImport(event) {
+            const file = event.target.files[0];
+            if (file) {
+                if (file.name.toLowerCase().endsWith('.rbxlx')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const xmlContent = e.target.result;
+                        parseAndLoadRBXLX(xmlContent);
+                        event.target.value = null; // Clear the file input
+                    };
+                    reader.onerror = (e) => {
+                        console.error("Error reading RBXLX file:", e);
+                        addConsoleMessage("Error reading RBXLX file. Please try again.", "error");
+                        event.target.value = null; 
+                    };
+                    reader.readAsText(file);
+                } else if (file.name.toLowerCase().endsWith('.rbxl')) {
+                    console.warn("RBXL (binary) file import is not supported in this simplified version. Only RBXLX (XML) files can be partially imported.");
+                    addConsoleMessage("RBXL (binary) files are not supported. Please try an RBXLX file if you have one, or use the 'Load Example Map' button for testing.", "warn");
+                    event.target.value = null; 
+                } else {
+                    console.warn("Unsupported file type selected. Please select a .rbxlx or .rbxl file.");
+                    addConsoleMessage("Unsupported file type. Please select a .rbxlx file.", "warn");
+                    event.target.value = null; 
+                }
+            }
+        }
+
+        /**
+         * Parses a simplified RBXLX XML string and adds objects to the scene.
+         * This function expects a *very* basic XML structure for demonstration purposes.
+         *
+         * To test this, you can click the "Load Example Map" button, which uses the
+         * `defaultMapRBXLXContent` defined in this script.
+         *
+         * If you wish to create your own RBXLX file, use a structure similar to `defaultMapRBXLXContent`.
+         * The parser currently supports `Part` (with Position, Size, Color) and `Model` (with Position, Scale, AssetPath).
+         */
+        function parseAndLoadRBXLX(xmlContent) {
+            // Clear previous map objects
+            while(importedMapGroup.children.length > 0) {
+                const object = importedMapGroup.children[0];
+                importedMapGroup.remove(object);
+                // Also remove from sceneObjects map
+                sceneObjects.delete(object.name);
+                // Dispose of geometries and materials to prevent memory leaks
+                if (object.isMesh) {
+                    if (object.geometry) object.geometry.dispose();
+                    if (object.material) {
+                        if (Array.isArray(object.material)) {
+                            object.material.forEach(m => m.dispose());
+                        } else {
+                            object.material.dispose();
+                        }
+                    }
+                }
+                // If the removed object was selected, deselect it
+                if (selectedObject === object) {
+                    deselectObject();
+                }
+            }
+            addConsoleMessage("Parsing RBXLX content...", "info");
+
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlContent, "text/xml");
+
+            if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
+                const errorMsg = xmlDoc.getElementsByTagName("parsererror")[0].textContent;
+                console.error("Error parsing XML:", errorMsg);
+                addConsoleMessage(`Error parsing RBXLX file: ${errorMsg}. Make sure it's valid XML.`, "error");
+                return;
+            }
+
+            const loader = new THREE.GLTFLoader();
+
+            // Find the Workspace item (or just iterate through all top-level Items in Roblox tag)
+            const workspaceItem = xmlDoc.querySelector('Roblox > Item[class="Workspace"]');
+            if (!workspaceItem) {
+                console.warn("No 'Workspace' item found in RBXLX file. Ensure your file has a <Roblox><Item class='Workspace'> structure.");
+                addConsoleMessage("RBXLX file seems empty or malformed (no Workspace found).", "warn");
+                return;
+            }
+
+            const items = workspaceItem.querySelectorAll(':scope > Item'); // Direct children of Workspace
+            let loadedObjectCount = 0;
+            let skippedObjectCount = 0;
+
+            if (items.length === 0) {
+                addConsoleMessage("Workspace is empty, no items found to import.", "info");
+                return;
+            }
+
+            items.forEach(itemNode => {
+                const itemClass = itemNode.getAttribute('class');
+                const propertiesNode = itemNode.querySelector('Properties');
+                if (!propertiesNode) {
+                    console.warn(`Skipping Item (class: ${itemClass}) due to missing Properties.`);
+                    skippedObjectCount++;
+                    return;
+                }
+
+                let name = propertiesNode.querySelector('string[name="Name"]') ? propertiesNode.querySelector('string[name="Name"]').textContent : null;
+                if (!name || sceneObjects.has(name)) { // Ensure uniqueness
+                    name = `Imported${itemClass}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+                }
+                
+                const posNode = propertiesNode.querySelector('Vector3[name="Position"]');
+                const position = new THREE.Vector3(
+                    posNode ? parseFloat(posNode.querySelector('X').textContent) : 0,
+                    posNode ? parseFloat(posNode.querySelector('Y').textContent) : 0,
+                    posNode ? parseFloat(posNode.querySelector('Z').textContent) : 0
+                );
+
+                if (itemClass === 'Part') {
+                    const sizeNode = propertiesNode.querySelector('Vector3[name="Size"]');
+                    const size = new THREE.Vector3(
+                        sizeNode ? parseFloat(sizeNode.querySelector('X').textContent) : 1,
+                        sizeNode ? parseFloat(sizeNode.querySelector('Y').textContent) : 1,
+                        sizeNode ? parseFloat(sizeNode.querySelector('Z').textContent) : 1
+                    );
+
+                    const colorNode = propertiesNode.querySelector('Color3uint8[name="Color"]');
+                    const color = new THREE.Color(
+                        colorNode ? parseInt(colorNode.querySelector('R').textContent) / 255 : 1,
+                        colorNode ? parseInt(colorNode.querySelector('G').textContent) / 255 : 1,
+                        colorNode ? parseInt(colorNode.querySelector('B').textContent) / 255 : 1
+                    );
+
+                    const geometry = new THREE.BoxGeometry(size.x, size.y, size.z);
+                    const material = new THREE.MeshPhongMaterial({ color: color });
+                    const mesh = new THREE.Mesh(geometry, material);
+                    mesh.position.copy(position);
+                    mesh.castShadow = true;
+                    mesh.receiveShadow = true;
+                    mesh.name = name;
+                    mesh.userData.rbxClass = 'Part'; // Custom data to identify type
+                    addSceneObject(mesh, name);
+                    loadedObjectCount++;
+                    addConsoleMessage(`Added Part: ${name} (Color: ${color.getHexString()}, Size: ${size.toArray()}, Pos: ${position.toArray()})`, "success");
+
+                } else if (itemClass === 'Model') {
+                    const assetPathNode = propertiesNode.querySelector('string[name="AssetPath"]');
+                    const assetPath = assetPathNode ? assetPathNode.textContent : null;
+                    const scaleNode = propertiesNode.querySelector('float[name="Scale"]');
+                    const scale = scaleNode ? parseFloat(scaleNode.textContent) : 1;
+
+                    if (assetPath) {
+                        loader.load(assetPath, function(gltf) {
+                            const model = gltf.scene;
+                            model.position.copy(position);
+                            model.scale.set(scale, scale, scale);
+                            model.name = name;
+                            model.userData.rbxClass = 'Model'; // Custom data to identify type
+                            model.traverse(node => {
+                                if (node.isMesh) {
+                                    node.castShadow = true;
+                                    node.receiveShadow = true;
+                                }
+                            });
+                            addSceneObject(model, name);
+                            loadedObjectCount++;
+                            addConsoleMessage(`Added Model: ${name} (Asset: ${assetPath}, Scale: ${scale}, Pos: ${position.toArray()})`, "success");
+                        }, undefined, function(error) {
+                            console.error(`Error loading model ${assetPath}:`, error);
+                            addConsoleMessage(`Failed to load model: ${name} from ${assetPath}. Error: ${error.message}`, "error");
+                            skippedObjectCount++; // Count as skipped if loading fails
+                        });
+                    } else {
+                        console.warn(`Skipping Model (name: ${name}) due to missing AssetPath.`);
+                        addConsoleMessage(`Skipping Model: ${name} due to missing AssetPath.`, "warn");
+                        skippedObjectCount++;
+                    }
+                } else {
+                    console.warn(`Skipping unsupported Item class: ${itemClass} (name: ${name}).`);
+                    addConsoleMessage(`Skipping unsupported Item class: ${itemClass} (name: ${name}).`, "warn");
+                    skippedObjectCount++;
+                }
+            });
+
+            if (loadedObjectCount > 0) {
+                addConsoleMessage(`Map imported! Added ${loadedObjectCount} objects to the scene.`, "info");
+            }
+            if (skippedObjectCount > 0) {
+                addConsoleMessage(`Skipped ${skippedObjectCount} unsupported or malformed items.`, "warn");
+            }
+            if (loadedObjectCount === 0 && skippedObjectCount === 0 && items.length > 0) {
+                addConsoleMessage("No supported items found in the Workspace for import (e.g., only empty models).", "warn");
+            } else if (loadedObjectCount === 0 && items.length === 0) {
+                addConsoleMessage("No items found in the Workspace.", "info");
+            }
+        }
+
+        // New function to add an object to the scene and the sceneObjects map
+        function addSceneObject(object, name) {
+            importedMapGroup.add(object);
+            sceneObjects.set(name, object);
+        }
+        
+        // --- Console Functions ---
+        const consoleOutput = document.getElementById('consoleOutput');
+        const consoleInput = document.getElementById('consoleInput');
+        const consoleContainer = document.getElementById('consoleContainer');
+
+        function initializeConsoleUI() {
+            const consoleButton = document.getElementById('consoleButton');
+
+            consoleButton.addEventListener('click', toggleConsole);
+            if (isTouchDevice) {
+                consoleButton.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    toggleConsole();
+                });
+            }
+
+            consoleInput.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    const command = consoleInput.value.trim();
+                    if (command) {
+                        addConsoleMessage(`> ${command}`, "command");
+                        processConsoleCommand(command);
+                        consoleInput.value = '';
+                    }
+                }
+            });
+
+            // Prevent scroll wheel on console input from zooming camera
+            consoleInput.addEventListener('wheel', (e) => e.stopPropagation(), { passive: false });
+            
+            consoleInput.addEventListener('focus', () => {
+                isConsoleOpen = true; // Mark console as active when its input is focused
+                updateCursor(); // Ensure custom game cursor is hidden
+            });
+
+            consoleInput.addEventListener('blur', () => {
+                // Only set isConsoleOpen to false if the console container is not explicitly visible.
+                // This helps avoid race conditions if blur happens during toggleConsole.
+                if (consoleContainer.style.display !== 'flex') {
+                    isConsoleOpen = false;
+                    updateCursor(); // Revert to game cursor
+                }
+            });
+        }
+
+        function toggleConsole() {
+            const consoleContainer = document.getElementById('consoleContainer');
+            const homeMenuOverlay = document.getElementById('homeMenuOverlay');
+            const settingsOverlay = document.getElementById('settingsOverlay');
+            const helpBox = document.getElementById('helpBox');
+            const inventoryOverlay = document.getElementById('inventoryOverlay');
+            const chatBar = document.getElementById('chatBar');
+            const chatMessagesDiv = document.getElementById('chatMessages');
+            const chatButton = document.getElementById('chatButton');
+            const inventoryButton = document.getElementById('inventoryButton');
+            const homeMenuIcon = document.getElementById('homeMenuIcon');
+
+            if (consoleContainer.style.display === 'flex') {
+                consoleContainer.style.display = 'none';
+                isConsoleOpen = false;
+                consoleInput.blur(); // Blur the input to release focus
+            } else {
+                // Close other UI elements that conflict
+                homeMenuOverlay.style.display = 'none';
+                homeMenuOverlay.classList.remove('open', 'closing');
+                homeMenuIcon.style.backgroundImage = "url('Hamburger@2x.png')";
+
+                settingsOverlay.style.display = 'none';
+                helpBox.style.display = 'none';
+                chatBar.style.display = 'none';
+                chatMessagesDiv.style.display = 'none';
+                chatButton.style.backgroundImage = "url('Chat@2x.png')";
+                inventoryOverlay.style.display = 'none';
+                inventoryButton.style.backgroundImage = "url('inventoryOff@2x.png')";
+
+                consoleContainer.style.display = 'flex';
+                isConsoleOpen = true;
+                consoleInput.focus(); // Focus the input for typing
+                addConsoleMessage("Welcome to the Console! Type /help for commands.", "info");
+            }
+            updateMenuBackgroundOverlay();
+            updateCursor(); // Update cursor visibility based on console state
+        }
+
+        function addConsoleMessage(message, type = "default") {
+            const msgElement = document.createElement('div');
+            msgElement.textContent = message;
+            msgElement.style.color = 'white'; // Default color
+
+            switch (type) {
+                case "info":
+                    msgElement.style.color = '#ADD8E6'; // Light Blue
+                    break;
+                case "warn":
+                    msgElement.style.color = '#FFFF00'; // Yellow
+                    break;
+                case "error":
+                    msgElement.style.color = '#FF4500'; // Orange Red
+                    break;
+                case "success":
+                    msgElement.style.color = '#90EE90'; // Light Green
+                    break;
+                case "command":
+                    msgElement.style.color = '#FFF'; // White
+                    break;
+            }
+
+            consoleOutput.appendChild(msgElement);
+            consoleOutput.scrollTop = consoleOutput.scrollHeight; // Auto-scroll to bottom
+        }
+
+        function selectObject(object) {
+            deselectObject(); // Deselect any currently selected object
+
+            if (!object) {
+                addConsoleMessage("No valid object provided for selection.", "error");
+                return;
+            }
+            
+            selectedObject = object;
+            selectionBoxHelper = new THREE.BoxHelper(selectedObject, 0xffff00); // Yellow outline
+            scene.add(selectionBoxHelper);
+            addConsoleMessage(`Selected object: ${selectedObject.name}`, "success");
+        }
+
+        function deselectObject() {
+            if (selectedObject) {
+                if (selectionBoxHelper) {
+                    scene.remove(selectionBoxHelper);
+                    selectionBoxHelper.dispose(); // Clean up helper geometry/material
+                    selectionBoxHelper = null;
+                }
+                addConsoleMessage(`Deselected object: ${selectedObject.name}`, "info");
+                selectedObject = null;
+            } else {
+                addConsoleMessage("No object currently selected.", "warn");
+            }
+        }
+
+        function processConsoleCommand(command) {
+            const parts = command.toLowerCase().split(/\s+/);
+            const cmd = parts[0];
+
+            if (cmd === '/help') {
+                addConsoleMessage("--- Console Commands ---", "info");
+                addConsoleMessage("/add part [color] [sizeX] [sizeY] [sizeZ] [posX] [posY] [posZ] - Add a new block.", "info");
+                addConsoleMessage("/list - List all manipulatable objects in the scene.", "info");
+                addConsoleMessage("/select <name> - Select an object by its name.", "info");
+                addConsoleMessage("/deselect - Deselect the current object.", "info");
+                addConsoleMessage("/move <x> <y> <z> - Move the selected object.", "info");
+                addConsoleMessage("/rotate <x> <y> <z> - Rotate the selected object (degrees).", "info");
+                addConsoleMessage("/resize <x> <y> <z> - Resize the selected object (scale factor).", "info");
+                addConsoleMessage("------------------------", "info");
+            } else if (cmd === '/add' && parts[1] === 'part') {
+                try {
+                    const colorString = parts[2] || getRandomColor();
+                    const sizeX = parseFloat(parts[3] || '5');
+                    const sizeY = parseFloat(parts[4] || '1');
+                    const sizeZ = parseFloat(parts[5] || '5');
+                    let posX = parseFloat(parts[6]);
+                    let posY = parseFloat(parts[7]);
+                    let posZ = parseFloat(parts[8]);
+
+                    if (isNaN(sizeX) || isNaN(sizeY) || isNaN(sizeZ) || sizeX <= 0 || sizeY <= 0 || sizeZ <= 0) {
+                        throw new Error("Invalid size parameters. Use positive numbers.");
+                    }
+
+                    const defaultPosOffset = 5; // How far in front of the player
+                    let finalPosition;
+
+                    if (isNaN(posX) || isNaN(posY) || isNaN(posZ)) {
+                        // Default position: slightly in front of the character
+                        const characterForward = new THREE.Vector3();
+                        character.getWorldDirection(characterForward); // Get forward direction
+                        characterForward.y = 0; // Keep it on the XZ plane
+                        characterForward.normalize();
+
+                        finalPosition = character.position.clone()
+                            .add(characterForward.multiplyScalar(defaultPosOffset))
+                            .add(new THREE.Vector3(0, sizeY / 2, 0)); // Place on ground level
+                    } else {
+                        finalPosition = new THREE.Vector3(posX, posY, posZ);
+                    }
+
+                    const geometry = new THREE.BoxGeometry(sizeX, sizeY, sizeZ);
+                    const material = new THREE.MeshPhongMaterial({ color: new THREE.Color(colorString) });
+                    const mesh = new THREE.Mesh(geometry, material);
+                    mesh.position.copy(finalPosition);
+                    mesh.castShadow = true;
+                    mesh.receiveShadow = true;
+                    mesh.userData.rbxClass = 'Part';
+                    
+                    let newPartName = `Part_${++partCounter}`;
+                    while(sceneObjects.has(newPartName)) { // Ensure absolute uniqueness
+                        newPartName = `Part_${++partCounter}`;
+                    }
+                    mesh.name = newPartName;
+                    
+                    addSceneObject(mesh, newPartName);
+                    addConsoleMessage(`Successfully added part: ${mesh.name} (Color: ${colorString}, Size: ${sizeX},${sizeY},${sizeZ}, Pos: ${finalPosition.x.toFixed(1)},${finalPosition.y.toFixed(1)},${finalPosition.z.toFixed(1)})`, "success");
+
+                } catch (error) {
+                    addConsoleMessage(`Error adding part: ${error.message}. Usage: /add part [color] [sizeX] [sizeY] [sizeZ] [posX] [posY] [posZ]`, "error");
+                }
+            } else if (cmd === '/list') {
+                if (sceneObjects.size === 0) {
+                    addConsoleMessage("No manipulatable objects in the scene.", "info");
+                    return;
+                }
+                addConsoleMessage("--- Objects in Scene ---", "info");
+                sceneObjects.forEach((obj, name) => {
+                    addConsoleMessage(`- ${name} (Type: ${obj.userData.rbxClass || 'Unknown'}, Pos: ${obj.position.x.toFixed(1)},${obj.position.y.toFixed(1)},${obj.position.z.toFixed(1)})`, "info");
+                });
+                addConsoleMessage("------------------------", "info");
+            } else if (cmd === '/select') {
+                const objectName = parts[1];
+                if (!objectName) {
+                    addConsoleMessage("Usage: /select <objectName>", "warn");
+                    return;
+                }
+                const objectToSelect = sceneObjects.get(objectName);
+                if (objectToSelect) {
+                    selectObject(objectToSelect);
+                } else {
+                    addConsoleMessage(`Object '${objectName}' not found. Use '/list' to see available objects.`, "error");
+                }
+            } else if (cmd === '/deselect') {
+                deselectObject();
+            } else if (cmd === '/move') {
+                if (!selectedObject) {
+                    addConsoleMessage("No object selected. Use '/select <name>' first.", "warn");
+                    return;
+                }
+                if (parts.length < 4) {
+                    addConsoleMessage("Usage: /move <x> <y> <z>", "warn");
+                    return;
+                }
+                try {
+                    const x = parseFloat(parts[1]);
+                    const y = parseFloat(parts[2]);
+                    const z = parseFloat(parts[3]);
+                    if (isNaN(x) || isNaN(y) || isNaN(z)) {
+                        throw new Error("Invalid coordinate values. Must be numbers.");
+                    }
+                    selectedObject.position.set(x, y, z);
+                    addConsoleMessage(`Moved '${selectedObject.name}' to X:${x.toFixed(1)}, Y:${y.toFixed(1)}, Z:${z.toFixed(1)}`, "success");
+                } catch (error) {
+                    addConsoleMessage(`Error moving object: ${error.message}`, "error");
+                }
+            } else if (cmd === '/rotate') {
+                if (!selectedObject) {
+                    addConsoleMessage("No object selected. Use '/select <name>' first.", "warn");
+                    return;
+                }
+                if (parts.length < 4) {
+                    addConsoleMessage("Usage: /rotate <x_degrees> <y_degrees> <z_degrees>", "warn");
+                    return;
+                }
+                try {
+                    const degToRad = THREE.MathUtils.degToRad;
+                    const x_deg = parseFloat(parts[1]);
+                    const y_deg = parseFloat(parts[2]);
+                    const z_deg = parseFloat(parts[3]);
+                    if (isNaN(x_deg) || isNaN(y_deg) || isNaN(z_deg)) {
+                        throw new Error("Invalid rotation values. Must be numbers (degrees).");
+                    }
+                    selectedObject.rotation.set(degToRad(x_deg), degToRad(y_deg), degToRad(z_deg));
+                    addConsoleMessage(`Rotated '${selectedObject.name}' to X:${x_deg.toFixed(1)}°, Y:${y_deg.toFixed(1)}°, Z:${z_deg.toFixed(1)}°`, "success");
+                } catch (error) {
+                    addConsoleMessage(`Error rotating object: ${error.message}`, "error");
+                }
+            } else if (cmd === '/resize') {
+                if (!selectedObject) {
+                    addConsoleMessage("No object selected. Use '/select <name>' first.", "warn");
+                    return;
+                }
+                if (parts.length < 4) {
+                    addConsoleMessage("Usage: /resize <scaleX> <scaleY> <scaleZ>", "warn");
+                    return;
+                }
+                try {
+                    const x_scale = parseFloat(parts[1]);
+                    const y_scale = parseFloat(parts[2]);
+                    const z_scale = parseFloat(parts[3]);
+                    if (isNaN(x_scale) || isNaN(y_scale) || isNaN(z_scale) || x_scale <= 0 || y_scale <= 0 || z_scale <= 0) {
+                        throw new Error("Invalid scale values. Must be positive numbers.");
+                    }
+
+                    // For parts (BoxGeometry), we can apply scale directly
+                    // For models (GLTF), scaling the root group is the standard
+                    selectedObject.scale.set(x_scale, y_scale, z_scale);
+
+                    addConsoleMessage(`Resized '${selectedObject.name}' to Scale: X:${x_scale.toFixed(2)}, Y:${y_scale.toFixed(2)}, Z:${z_scale.toFixed(2)}`, "success");
+                } catch (error) {
+                    addConsoleMessage(`Error resizing object: ${error.message}`, "error");
+                }
+            }
+            else {
+                addConsoleMessage(`Unknown command: ${command}`, "warn");
+            }
+        }
+        // --- End Console Functions ---
+
+        init();
+    </script>
+</body>
+</html>
