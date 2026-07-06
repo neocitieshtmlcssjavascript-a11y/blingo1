@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blingo - Catalog</title>
+    <link rel="icon" type="image/x-icon" href="/roblox_logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --roblox-top-bar-bg: #4A81BF; /* Lighter blue for the header */
+            --roblox-sidebar-bg: #F5F5F5; /* Very light grey for the sidebar */
+            --roblox-main-bg: #EAEAEA; /* Light grey for main background */
+            --roblox-content-bg: #FFFFFF; /* White for main content blocks */
+            --roblox-link-blue: #0077B6; /* Classic Roblox link blue */
+            --roblox-link-hover-blue: #005682; /* Darker blue on link hover */
+            --roblox-button-bg: #00A3EF; /* Button blue */
+            --roblox-button-hover: #0087C7; /* Button hover blue */
+            --roblox-border-color: #D9D9D9; /* Standard border color */
+            --roblox-header-border: #336699; /* Darker border for header */
+            --text-color: #333;
+            --white-text: #fff;
+            --robux-yellow: #FFCC00; /* Used for Robux icon bg - NO LONGER USED FOR IMG */
+            --robux-gold-text: #E5A823; /* Text color for Robux amount */
+            --tix-icon-bg: #888888; /* Silver/grey for Tix icon background - NO LONGER USED FOR IMG */
+            --tix-amount-text: #555555; /* Darker grey for Tix amount text */
+            --game-tile-shadow: rgba(0, 0, 0, 0.05);
+            --play-button-green: #5BB12F; /* Green for play button */
+        }
+
+        body {
+            font-family: "Source Sans Pro", Arial, sans-serif;
+            margin: 0;
+            background-color: var(--roblox-main-bg);
+            color: var(--text-color);
+            line-height: 1.5;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        a {
+            text-decoration: none;
+            color: var(--roblox-link-blue);
+        }
+
+        a:hover {
+            text-decoration: underline;
+            color: var(--roblox-link-hover-blue);
+        }
+
+        /* Header (Top Bar) */
+        .header {
+            background-color: var(--roblox-top-bar-bg); /* Set to solid color */
+            padding: 5px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            color: var(--white-text);
+            height: 50px;
+            border-bottom: 1px solid var(--roblox-header-border);
+            position: relative; /* For z-index to be effective for dropdowns if added later */
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .header .logo {
+            height: 40px;
+            margin-right: 15px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px; /* Spacing between elements */
+        }
+
+        .header-right > div {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            height: 30px; /* Align with search bar */
+        }
+
+        .header-right .currency-display {
+            background-color: transparent; /* Removed background */
+            color: var(--white-text); /* Changed to white text to match header */
+            padding: 0; /* Removed padding */
+            border-radius: 0; /* Removed border-radius */
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            border: none; /* Removed border */
+            box-shadow: none; /* Removed box-shadow */
+            cursor: pointer; /* Typically clickable */
+        }
+
+        /* New class for the currency icon images */
+        .header-right .currency-icon-image {
+            width: 25px; /* Made bigger */
+            height: 25px; /* Made bigger */
+            margin-right: 8px; /* Adjusted margin */
+            object-fit: contain; /* Ensure the full image is visible without cropping */
+        }
+
+        .header-right .currency-display span:last-child {
+            color: var(--white-text); /* Changed to white text */
+        }
+
+        .header-right .tix-display span:last-child {
+            color: var(--white-text); /* Changed to white text */
+        }
+
+        /* Ensure currency amounts are not bold */
+        .currency-amount {
+            font-weight: normal;
+        }
+
+        .header-right .profile-link {
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            color: var(--white-text);
+            padding: 3px 0;
+            transition: color 0.2s ease;
+        }
+
+        .header-right .profile-link img {
+            width: 30px;
+            height: 30px;
+            border-radius: 3px;
+            margin-right: 8px;
+            border: 1px solid var(--roblox-border-color);
+            background-color: #ccc;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .header-right .profile-link:hover {
+            text-decoration: none;
+            color: #ADD8E6; /* Lighter blue for hover on dark background */
+        }
+
+        .header-right .icon-link {
+            font-size: 20px; /* Unicode chars are larger */
+            padding: 5px;
+            color: var(--white-text);
+            transition: color 0.2s ease;
+        }
+
+        .header-right .icon-link:hover {
+            color: #ADD8E6; /* Lighter hover for icons */
+        }
+
+        /* New header navigation styles */
+        .header-nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex; /* Make links horizontal */
+            gap: 15px; /* Space between links */
+            margin-left: 20px; /* Space from logo */
+        }
+
+        .header-nav li a {
+            color: var(--white-text);
+            font-weight: 600;
+            padding: 5px 10px;
+            border-radius: 3px;
+            transition: background-color 0.2s ease;
+            font-size: 15px;
+        }
+
+        .header-nav li a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            text-decoration: none;
+        }
+
+        .header-nav li a.active {
+            background-color: rgba(255, 255, 255, 0.3); /* Slightly more prominent active state */
+        }
+
+        /* Main Wrapper for Sidebar and Content */
+        .page-wrapper {
+            flex: 1; /* Takes remaining space */
+            max-width: 1000px; /* Wider content area */
+            margin: 20px auto;
+            padding: 0 20px; /* Ensure padding on smaller screens */
+            box-sizing: border-box; /* Include padding in width */
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            background-color: var(--roblox-content-bg);
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+            padding: 20px;
+            border: 1px solid var(--roblox-border-color);
+            box-sizing: border-box;
+        }
+
+        .section-header {
+            font-size: 20px;
+            font-weight: 600; /* Source Sans Pro semibold */
+            margin-bottom: 15px;
+            color: var(--roblox-top-bar-bg); /* Dark blue for headers */
+            border-bottom: 1px solid var(--roblox-border-color);
+            padding-bottom: 8px;
+        }
+
+        /* Catalog specific styles */
+        .catalog-item {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 15px;
+            border: 1px solid var(--roblox-border-color);
+            border-radius: 5px;
+            background-color: #fcfcfc;
+            margin-bottom: 15px;
+        }
+
+        .catalog-item img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            border: 1px solid #eee;
+            border-radius: 3px;
+        }
+
+        .item-details {
+            flex-grow: 1;
+        }
+
+        .item-details h3 {
+            margin: 0 0 5px 0;
+            font-size: 18px;
+            color: var(--roblox-link-blue);
+        }
+
+        .item-details p {
+            margin: 0;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .item-price {
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            font-size: 16px;
+            color: var(--tix-amount-text);
+            margin-top: 5px;
+        }
+        .item-price img {
+            width: 18px;
+            height: 18px;
+            margin-right: 5px;
+        }
+
+        .buy-button {
+            background-color: var(--roblox-button-bg);
+            color: var(--white-text);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .buy-button:hover:not(:disabled) {
+            background-color: var(--roblox-button-hover);
+        }
+
+        .buy-button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .purchase-message {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+            text-align: center;
+        }
+
+        /* Footer */
+        .footer {
+            background-color: #333;
+            color: #bbb;
+            padding: 20px;
+            text-align: center;
+            font-size: 13px;
+            margin-top: 30px;
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.05);
+            border-top: 1px solid #444;
+        }
+
+        .footer a {
+            color: #bbb;
+            margin: 0 8px;
+            font-size: 13px;
+            transition: color 0.2s ease;
+        }
+        .footer a:hover {
+            color: var(--white-text);
+            text-decoration: underline;
+        }
+
+        .game-tile .play-button-overlay img { /* For the play button image */
+            width: 50px;
+            height: 50px;
+            border: none;
+            filter: drop-shadow(0 0 5px rgba(0,0,0,0.5));
+        }
+
+        .game-tile .game-info {
+            padding: 8px 5px;
+            background-color: #fcfcfc; /* Slight background for info */
+            border-top: 1px solid #eee;
+        }
+
+        /* Loading Screen Styles */
+        .loading-screen {
+            background-color: var(--roblox-content-bg);
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+            border: 1px solid var(--roblox-border-color);
+            box-sizing: border-box;
+            padding: 20px; /* Match main content padding */
+            
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            flex: 1; /* Make the loading screen take up available vertical space */
+            width: 100%; /* Take full width of parent */
+        }
+
+        .loading-screen img {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 15px;
+        }
+
+        .loading-screen p {
+            font-size: 18px;
+            color: var(--text-color);
+            margin: 0;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Mobile Navigation */
+        .mobile-nav {
+            display: none; /* Hidden by default on larger screens */
+        }
+
+        /* Mobile Styles */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                height: auto;
+                padding: 10px;
+            }
+
+            .header-left, .header-right {
+                width: 100%;
+                justify-content: center;
+                margin-bottom: 0;
+                flex-wrap: wrap;
+            }
+
+            .header-left {
+                order: 1;
+            }
+
+            .header-right {
+                order: 2;
+                gap: 5px;
+                margin-bottom: 10px; /* Kept for spacing if header-left is hidden */
+                justify-content: flex-end; /* Align items to the right */
+            }
+
+            .header .logo {
+                display: none; /* Hide Blingo logo on mobile */
+            }
+
+            .header-nav { /* Hide PC navigation entirely */
+                display: none;
+            }
+
+            .header-nav ul {
+                flex-direction: column;
+                gap: 5px;
+                margin-left: 0;
+                text-align: center;
+                width: 100%;
+            }
+
+            .header-nav li a {
+                padding: 8px 5px;
+                font-size: 14px;
+            }
+
+            .header-right > div {
+                margin-bottom: 0; /* No margin-bottom on individual items if they are in a row */
+                width: auto;
+                /* Removed justify-content: center as header-right now handles alignment */
+            }
+
+            .header-right .currency-icon-image {
+                width: 20px;
+                height: 20px;
+                margin-right: 5px;
+            }
+
+            .header-right .profile-link {
+                display: none; /* Hide profile link on mobile */
+            }
+
+            .header-right .profile-link img {
+                width: 25px;
+                height: 25px;
+                margin-right: 5px;
+            }
+            .header-right .icon-link {
+                font-size: 18px;
+                padding: 3px;
+            }
+
+            .page-wrapper {
+                max-width: 100%;
+                padding: 0 10px;
+                margin: 10px auto;
+                padding-bottom: 60px;
+            }
+
+            .main-content {
+                padding: 15px;
+            }
+
+            .section-header {
+                font-size: 18px;
+                margin-bottom: 10px;
+            }
+
+            .footer {
+                padding: 15px;
+                font-size: 12px;
+            }
+
+            /* Catalog specific mobile styles */
+            .catalog-item {
+                flex-direction: column;
+                text-align: center;
+                align-items: center;
+                gap: 10px;
+                padding: 10px;
+            }
+
+            .catalog-item img {
+                width: 60px;
+                height: 60px;
+            }
+
+            .item-details {
+                text-align: center;
+            }
+
+            .item-price {
+                justify-content: center;
+            }
+
+            .buy-button {
+                width: 100%;
+                padding: 8px 15px;
+                font-size: 15px;
+            }
+
+            .loading-screen img { /* Adjust loading dots for smaller screens if necessary */
+                width: 80px;
+                height: 80px;
+            }
+
+            /* New Mobile Navigation */
+            .mobile-nav {
+                display: flex; /* Show on mobile */
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: 60px;
+                background-color: var(--roblox-top-bar-bg);
+                justify-content: space-around;
+                align-items: center;
+                box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
+                z-index: 1000;
+            }
+
+            .mobile-nav-item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                flex: 1;
+                height: 100%;
+                color: var(--white-text);
+                text-decoration: none;
+                transition: background-color 0.2s ease;
+            }
+
+            .mobile-nav-item:hover,
+            .mobile-nav-item.active {
+                background-color: rgba(255, 255, 255, 0.2);
+                text-decoration: none;
+            }
+
+            .mobile-nav-item img {
+                width: 30px;
+                height: 30px;
+                object-fit: contain;
+                border: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header" style="background-color: var(--roblox-top-bar-bg);">
+        <div class="header-left">
+            <img src="/bling-9-21-2025.png" alt="Blingo Logo" class="logo">
+            <nav class="header-nav">
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="games.html">Games</a></li>
+                    <li><a href="robux.html">Robux</a></li>
+                    <li><a href="profile.html">Profile</a></li>
+                    <li><a href="catalog.html" class="active">Catalog</a></li>
+                    <li><a href="discord.html">Discord</a></li>
+                </ul>
+            </nav>
+        </div>
+        <div class="header-right">
+            <div class="currency-display">
+                <img src="/robux treew.png" alt="Robux Icon" class="currency-icon-image"> <span id="robux-amount" class="currency-amount"></span>
+            </div>
+            <div class="currency-display tix-display">
+                <img src="/tix.png" alt="Tix Icon" class="currency-icon-image"> <span id="tix-amount" class="currency-amount"></span>
+            </div>
+            <div>
+                <a href="/profile.html" class="profile-link">
+                    <img src="/noobs.png" alt="User Avatar">
+                    Guest User
+                </a>
+            </div>
+            <div>
+                <a href="#" class="icon-link" title="Messages"><img src="/debilischke.png" alt="Messages" class="currency-icon-image" style="margin-right: 0; width: 25px; height: 25px;"></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-wrapper">
+        <div id="loading-screen" class="loading-screen">
+            <img src="/loadingdots.gif" alt="Loading...">
+            <p>Loading Catalog...</p>
+        </div>
+        <div class="main-content hidden" id="main-content-actual">
+            <div class="section-header">Catalog</div>
+            <div class="catalog-item">
+                <img src="/bling-9-21-2025.png" alt="Test Item">
+                <div class="item-details">
+                    <h3>Test Item</h3>
+                    <p>A placeholder item for testing purposes.</p>
+                    <div class="item-price">
+                        <img src="/tix.png" alt="Tix Icon">
+                        <span id="test-item-price">10</span> Tix
+                    </div>
+                </div>
+                <button id="buy-test-item" class="buy-button">Buy</button>
+            </div>
+            <p id="purchase-message" class="purchase-message"></p>
+        </div>
+    </div>
+
+    <div class="footer">
+        blingo is back.
+    </div>
+
+    <div class="mobile-nav">
+        <a href="games.html" class="mobile-nav-item">
+            <img src="/games button.png" alt="Games">
+        </a>
+        <a href="catalog.html" class="mobile-nav-item active">
+            <img src="/catalog.png" alt="Catalog">
+        </a>
+        <a href="robux.html" class="mobile-nav-item">
+            <img src="/robux button.png" alt="Robux">
+        </a>
+        <a href="profile.html" class="mobile-nav-item">
+            <img src="/profile button.png" alt="Profile">
+        </a>
+        <a href="discord.html" class="mobile-nav-item">
+            <img src="/discord.png" alt="Discord">
+        </a>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "/shared.js": "/shared.js"
+            }
+        }
+    </script>
+    <script type="module">
+        import { loadCurrency, saveCurrency } from '/shared.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const loadingScreen = document.getElementById('loading-screen');
+            const mainContentActual = document.getElementById('main-content-actual');
+
+            setTimeout(() => {
+                if (loadingScreen) loadingScreen.classList.add('hidden');
+                if (mainContentActual) mainContentActual.classList.remove('hidden');
+
+                const buyTestItemButton = document.getElementById('buy-test-item');
+                const purchaseMessageElement = document.getElementById('purchase-message');
+                const testItemPrice = 10; // The price of the "Test Item" in Tix
+
+                function updateCatalogUI() {
+                    loadCurrency(); // Update header currency display
+                    let currentTix = parseInt(localStorage.getItem('blingo-tix') || '0');
+                    const hasBoughtTestItem = localStorage.getItem('blingo-hasBoughtTestItem') === 'true';
+
+                    if (hasBoughtTestItem) {
+                        buyTestItemButton.disabled = true;
+                        buyTestItemButton.textContent = 'Purchased';
+                        purchaseMessageElement.textContent = 'You already own this item!';
+                    } else if (currentTix >= testItemPrice) {
+                        buyTestItemButton.disabled = false;
+                        buyTestItemButton.textContent = 'Buy';
+                        purchaseMessageElement.textContent = 'Click "Buy" to purchase this item.';
+                    } else {
+                        buyTestItemButton.disabled = true;
+                        buyTestItemButton.textContent = `Need ${testItemPrice - currentTix} more Tix`;
+                        purchaseMessageElement.textContent = `You need ${testItemPrice} Tix to buy this item.`;
+                    }
+                }
+
+                function handleBuyTestItem() {
+                    let currentRobux = parseInt(localStorage.getItem('blingo-robux') || '0');
+                    let currentTix = parseInt(localStorage.getItem('blingo-tix') || '0');
+                    const hasBoughtTestItem = localStorage.getItem('blingo-hasBoughtTestItem') === 'true';
+
+                    if (hasBoughtTestItem) {
+                        purchaseMessageElement.textContent = 'You already own this item!';
+                        return;
+                    }
+
+                    if (currentTix >= testItemPrice) {
+                        currentTix -= testItemPrice;
+                        saveCurrency(currentRobux, currentTix);
+                        localStorage.setItem('blingo-hasBoughtTestItem', 'true');
+                        purchaseMessageElement.textContent = 'Successfully purchased Test Item!';
+                        updateCatalogUI(); // Update UI after purchase
+                    } else {
+                        purchaseMessageElement.textContent = 'Insufficient Tix to purchase this item.';
+                        updateCatalogUI(); // Ensure UI reflects current currency
+                    }
+                }
+
+                buyTestItemButton.addEventListener('click', handleBuyTestItem);
+                updateCatalogUI(); // Initial UI update
+                setInterval(updateCatalogUI, 1000); // Periodically update UI to reflect currency changes from other pages
+
+            }, 3000); // 3 seconds
+        });
+    </script>
+</body>
+</html>
