@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blingo - Building Simulator</title>
+    <link rel="icon" type="image/x-icon" href="/roblox_logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --roblox-top-bar-bg: #4A81BF; 
+            --roblox-sidebar-bg: #F5F5F5; 
+            --roblox-main-bg: #EAEAEA; 
+            --roblox-content-bg: #FFFFFF; 
+            --roblox-link-blue: #0077B6; 
+            --roblox-link-hover-blue: #005682; 
+            --roblox-button-bg: #00A3EF; 
+            --roblox-button-hover: #0087C7; 
+            --roblox-border-color: #D9D9D9; 
+            --roblox-header-border: #336699; 
+            --text-color: #333;
+            --white-text: #fff;
+            --robux-yellow: #FFCC00; 
+            --robux-gold-text: #E5A823; 
+            --tix-icon-bg: #888888; 
+            --tix-amount-text: #555555; 
+            --game-tile-shadow: rgba(0, 0, 0, 0.05);
+            --play-button-green: #5BB12F; 
+        }
+
+        body {
+            font-family: "Source Sans Pro", Arial, sans-serif;
+            margin: 0;
+            background-color: var(--roblox-main-bg);
+            color: var(--text-color);
+            line-height: 1.5;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        a {
+            text-decoration: none;
+            color: var(--roblox-link-blue);
+        }
+
+        a:hover {
+            text-decoration: underline;
+            color: var(--roblox-link-hover-blue);
+        }
+
+        /* Header (Top Bar) */
+        .header {
+            background-color: var(--roblox-top-bar-bg); /* Set to solid color */
+            padding: 5px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            color: var(--white-text);
+            height: 50px;
+            border-bottom: 1px solid var(--roblox-header-border);
+            position: relative; /* For z-index to be effective for dropdowns if added later */
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .header .logo {
+            height: 40px;
+            margin-right: 15px;
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background-color: var(--white-text);
+            border-radius: 3px;
+            overflow: hidden;
+            width: 300px;
+            height: 30px;
+            border: 1px solid #999;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .search-bar input {
+            border: none;
+            padding: 5px 10px;
+            flex-grow: 1;
+            outline: none;
+            background: transparent;
+            font-size: 14px;
+            color: var(--text-color);
+        }
+
+        .search-bar button {
+            background-color: var(--roblox-button-bg);
+            border: none;
+            padding: 5px 12px;
+            cursor: pointer;
+            color: var(--white-text);
+            font-weight: bold;
+            height: 100%;
+            border-radius: 0 3px 3px 0;
+            transition: background-color 0.2s ease;
+            font-size: 14px;
+        }
+
+        .search-bar button:hover {
+            background-color: var(--roblox-button-hover);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px; /* Spacing between elements */
+        }
+
+        .header-right > div {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            height: 30px; /* Align with search bar */
+        }
+
+        .header-right .currency-display {
+            background-color: transparent; /* Removed background */
+            color: var(--white-text); /* Changed to white text to match header */
+            padding: 0; /* Removed padding */
+            border-radius: 0; /* Removed border-radius */
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            border: none; /* Removed border */
+            box-shadow: none; /* Removed box-shadow */
+            cursor: pointer; /* Typically clickable */
+        }
+
+        /* New class for the currency icon images */
+        .header-right .currency-icon-image {
+            width: 25px; /* Made bigger */
+            height: 25px; /* Made bigger */
+            margin-right: 8px; /* Adjusted margin */
+            object-fit: contain; /* Ensure the full image is visible without cropping */
+        }
+
+        .header-right .currency-display span:last-child {
+            color: var(--white-text); /* Changed to white text */
+        }
+
+        .header-right .tix-display span:last-child {
+            color: var(--white-text); /* Changed to white text */
+        }
+
+        /* Ensure currency amounts are not bold */
+        .currency-amount {
+            font-weight: normal;
+        }
+
+        .header-right .profile-link {
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            color: var(--white-text);
+            padding: 3px 0;
+            transition: color 0.2s ease;
+        }
+
+        .header-right .profile-link img {
+            width: 30px;
+            height: 30px;
+            border-radius: 3px;
+            margin-right: 8px;
+            border: 1px solid var(--roblox-border-color);
+            background-color: #ccc;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .header-right .profile-link:hover {
+            text-decoration: none;
+            color: #ADD8E6; /* Lighter blue for hover on dark background */
+        }
+
+        .header-right .icon-link {
+            font-size: 20px; /* Unicode chars are larger */
+            padding: 5px;
+            color: var(--white-text);
+            transition: color 0.2s ease;
+        }
+
+        .header-right .icon-link:hover {
+            color: #ADD8E6; /* Lighter hover for icons */
+        }
+
+        /* New header navigation styles */
+        .header-nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex; /* Make links horizontal */
+            gap: 15px; /* Space between links */
+            margin-left: 20px; /* Space from logo */
+        }
+
+        .header-nav li a {
+            color: var(--white-text);
+            font-weight: 600;
+            padding: 5px 10px;
+            border-radius: 3px;
+            transition: background-color 0.2s ease;
+            font-size: 15px;
+        }
+
+        .header-nav li a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            text-decoration: none;
+        }
+
+        .header-nav li a.active {
+            background-color: rgba(255, 255, 255, 0.3); /* Slightly more prominent active state */
+        }
+
+        /* Main Wrapper for Sidebar and Content */
+        .page-wrapper {
+            flex: 1; /* Takes remaining space */
+            max-width: 1000px; /* Increased max-width for game pages */
+            margin: 20px auto;
+            padding: 0 20px; /* Ensure padding on smaller screens */
+            box-sizing: border-box; /* Include padding in width */
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            background-color: var(--roblox-content-bg);
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+            padding: 0; /* Removed padding here, moved to sub-containers */
+            border: 1px solid var(--roblox-border-color);
+            box-sizing: border-box;
+        }
+
+        /* Advertisement Banner */
+        .advertisement {
+            background-color: #f0f0f0;
+            text-align: center;
+            padding: 5px 0;
+            font-size: 12px;
+            color: #666;
+            border-bottom: 1px solid var(--roblox-border-color);
+        }
+
+        /* Game Page Layout */
+        .game-page-layout {
+            display: flex;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+        }
+
+        .game-media {
+            flex: 2; /* Takes more space for the image/video */
+            min-width: 300px; /* Ensure it doesn't get too small */
+            padding: 20px; /* Padding for the image/video area */
+            background-color: #f9f9f9;
+            border-right: 1px solid var(--roblox-border-color);
+            box-sizing: border-box;
+        }
+
+        .game-media img {
+            width: 100%;
+            height: auto;
+            display: block; /* Remove extra space below image */
+            border: 1px solid #ccc; /* Subtle border for the image */
+        }
+
+        .game-details-sidebar {
+            flex: 1; /* Takes remaining space for details */
+            min-width: 300px; /* Ensure it doesn't get too small */
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 15px; /* Spacing between elements in the sidebar */
+        }
+
+        .game-detail-title {
+            font-size: 28px; /* Slightly smaller for better fit with icons */
+            font-weight: 700;
+            color: var(--text-color); /* Dark text for title */
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px; /* Space between title and icons */
+        }
+
+        .game-detail-title .copy-icon,
+        .game-detail-title .options-icon {
+            font-size: 20px;
+            color: #999;
+            cursor: pointer;
+        }
+
+        .game-header-meta {
+            font-size: 14px;
+            color: #777;
+            margin-top: -10px; /* Pull it slightly up towards the title */
+        }
+
+        .game-header-meta a {
+            font-weight: bold;
+            color: var(--roblox-link-blue);
+        }
+        .game-header-meta .verify-user {
+            color: #5BB12F; /* Green color for "Verify User" */
+            font-weight: bold;
+        }
+
+        .r6-notice {
+            background-color: #fff8e1; /* Light yellow background */
+            border: 1px solid #ffe082; /* Yellow border */
+            padding: 10px;
+            border-radius: 3px;
+            font-size: 13px;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .r6-notice::before {
+            content: "ⓘ"; /* Info icon */
+            font-weight: bold;
+            color: #ffb300; /* Darker yellow for icon */
+        }
+
+        .game-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .play-game-button, .build-game-button {
+            flex: 1;
+            background-color: var(--play-button-green);
+            color: var(--white-text);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .play-game-button:hover, .build-game-button:hover {
+            background-color: #4CAF50; /* Slightly darker green */
+            transform: translateY(-1px);
+        }
+
+        .play-game-button img {
+            width: 24px;
+            height: 24px;
+            /* filter: invert(100%); REMOVED: Assuming new play button asset is white */
+            border: none;
+        }
+        .build-game-button {
+            background-color: #0077B6; /* A different blue for the build button */
+        }
+        .build-game-button:hover {
+            background-color: #005682;
+        }
+        .build-game-button::before {
+            content: "⚙️"; /* Cog icon for build */
+            font-size: 18px;
+        }
+
+        .social-buttons {
+            display: none; /* Hide social buttons */
+        }
+
+        .social-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 12px;
+            color: #666;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .social-button:hover {
+            color: var(--roblox-link-blue);
+        }
+
+        .social-button .icon {
+            font-size: 24px; /* For placeholder icons */
+            margin-bottom: 5px;
+            color: #888;
+        }
+        .social-button .count {
+            font-weight: bold;
+            color: var(--text-color);
+            margin-top: 2px;
+        }
+
+        .social-button.like .icon { color: #5BB12F; } /* Green for like */
+        .social-button.dislike .icon { color: #E74C3C; } /* Red for dislike */
+        .social-button.follow .count { color: #0077B6; } /* Blue for follow count */
+
+
+        .private-notes-section,
+        .about-section,
+        .game-statistics {
+            padding: 20px;
+            border-top: 1px solid var(--roblox-border-color);
+        }
+
+        .private-notes-section h3,
+        .about-section h3,
+        .game-statistics h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--roblox-top-bar-bg);
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        .private-notes-section p,
+        .about-section p {
+            font-size: 14px;
+            color: #555;
+        }
+        .private-notes-section .edit-icon {
+            font-size: 16px;
+            color: #999;
+            margin-left: 5px;
+            cursor: pointer;
+        }
+
+        .game-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* Responsive grid */
+            gap: 15px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .game-stats-grid div {
+            padding: 5px;
+            background-color: #fcfcfc;
+            border: 1px solid #eee;
+            border-radius: 3px;
+        }
+
+        .game-stats-grid strong {
+            display: block;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 2px;
+        }
+
+        /* Footer */
+        .footer {
+            background-color: #333;
+            color: #bbb;
+            padding: 20px;
+            text-align: center;
+            font-size: 13px;
+            margin-top: 30px;
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.05);
+            border-top: 1px solid #444;
+        }
+
+        .footer a {
+            color: #bbb;
+            margin: 0 8px;
+            font-size: 13px;
+            transition: color 0.2s ease;
+        }
+        .footer a:hover {
+            color: var(--white-text);
+            text-decoration: underline;
+        }
+
+        /* Mobile Navigation */
+        .mobile-nav {
+            display: none; /* Hidden by default on larger screens */
+        }
+
+        /* Mobile Styles */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                height: auto;
+                padding: 10px;
+            }
+
+            .header-left, .header-right {
+                width: 100%;
+                justify-content: center;
+                margin-bottom: 0;
+                flex-wrap: wrap;
+            }
+
+            .header-left {
+                order: 1;
+            }
+
+            .header-right {
+                order: 2;
+                gap: 5px;
+                margin-bottom: 10px; /* Kept for spacing if header-left is hidden */
+                justify-content: flex-end; /* Align items to the right */
+            }
+
+            .header .logo {
+                display: none; /* Hide Blingo logo on mobile */
+            }
+
+            .header-nav { /* Hide PC navigation entirely */
+                display: none;
+            }
+
+            .header-nav ul {
+                flex-direction: column;
+                gap: 5px;
+                margin-left: 0;
+                text-align: center;
+                width: 100%;
+            }
+
+            .header-nav li a {
+                padding: 8px 5px;
+                font-size: 14px;
+            }
+
+            .search-bar {
+                width: 90%;
+                margin: 0 0 10px 0;
+                order: 3;
+            }
+
+            .search-bar input {
+                font-size: 12px;
+            }
+
+            .search-bar button {
+                padding: 5px 8px;
+                font-size: 12px;
+            }
+
+            .header-right > div {
+                margin-bottom: 0; /* No margin-bottom on individual items if they are in a row */
+                width: auto;
+                /* Removed justify-content: center as header-right now handles alignment */
+            }
+
+            .header-right .currency-icon-image {
+                width: 20px;
+                height: 20px;
+                margin-right: 5px;
+            }
+
+            .header-right .profile-link {
+                display: none; /* Hide profile link on mobile */
+            }
+
+            .header-right .profile-link img {
+                width: 25px;
+                height: 25px;
+                margin-right: 5px;
+            }
+            .header-right .icon-link {
+                font-size: 18px;
+                padding: 3px;
+            }
+
+            .page-wrapper {
+                max-width: 100%;
+                padding: 0 10px;
+                margin: 10px auto;
+                padding-bottom: 60px;
+            }
+
+            .main-content {
+                padding: 15px;
+            }
+
+            .section-header {
+                font-size: 18px;
+                margin-bottom: 10px;
+            }
+
+            .footer {
+                padding: 15px;
+                font-size: 12px;
+            }
+
+            /* Game page specific mobile styles */
+            .game-page-layout {
+                flex-direction: column;
+            }
+
+            .game-media {
+                border-right: none;
+                border-bottom: 1px solid var(--roblox-border-color);
+                padding: 10px;
+            }
+
+            .game-media img {
+                width: 100%;
+            }
+
+            .game-details-sidebar {
+                padding: 10px;
+            }
+
+            .game-detail-title {
+                font-size: 24px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .game-header-meta {
+                text-align: center;
+            }
+
+            .game-actions {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .play-game-button, .build-game-button {
+                width: 100%;
+                padding: 10px 15px;
+                font-size: 16px;
+            }
+
+            .private-notes-section,
+            .about-section,
+            .game-statistics {
+                padding: 15px;
+            }
+
+            .game-stats-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            /* New Mobile Navigation */
+            .mobile-nav {
+                display: flex; /* Show on mobile */
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: 60px;
+                background-color: var(--roblox-top-bar-bg);
+                justify-content: space-around;
+                align-items: center;
+                box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
+                z-index: 1000;
+            }
+
+            .mobile-nav-item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                flex: 1;
+                height: 100%;
+                color: var(--white-text);
+                text-decoration: none;
+                transition: background-color 0.2s ease;
+            }
+
+            .mobile-nav-item:hover,
+            .mobile-nav-item.active {
+                background-color: rgba(255, 255, 255, 0.2);
+                text-decoration: none;
+            }
+
+            .mobile-nav-item img {
+                width: 30px;
+                height: 30px;
+                object-fit: contain;
+                border: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header" style="background-color: var(--roblox-top-bar-bg);">
+        <div class="header-left">
+            <img src="/bling-9-21-2025.png" alt="Blingo Logo" class="logo">
+            <nav class="header-nav">
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="games.html" class="active">Games</a></li>
+                    <li><a href="robux.html">Robux</a></li>
+                    <li><a href="profile.html">Profile</a></li>
+                    <li><a href="catalog.html">Catalog</a></li>
+                    <li><a href="discord.html">Discord</a></li>
+                </ul>
+            </nav>
+        </div>
+        <div class="header-right">
+            <div class="currency-display">
+                <img src="/robux treew.png" alt="Robux Icon" class="currency-icon-image"> <span id="robux-amount" class="currency-amount"></span>
+            </div>
+            <div class="currency-display tix-display">
+                <img src="/tix.png" alt="Tix Icon" class="currency-icon-image"> <span id="tix-amount" class="currency-amount"></span>
+            </div>
+            <div>
+                <a href="/profile.html" class="profile-link">
+                    <img src="/noobs.png" alt="User Avatar">
+                    Guest User
+                </a>
+            </div>
+            <div>
+                <a href="#" class="icon-link" title="Messages"><img src="/debilischke.png" alt="Messages" class="currency-icon-image" style="margin-right: 0; width: 25px; height: 25px;"></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-wrapper">
+        <div class="main-content">
+            <div class="advertisement">ADVERTISEMENT</div>
+            <div class="game-page-layout">
+                <div class="game-media">
+                    <img src="/Bacon_Hair.png" alt="Building Simulator" class="game-detail-image">
+                </div>
+                <div class="game-details-sidebar">
+                    <h1 class="game-detail-title">
+                        Building Simulator <span class="copy-icon">📋</span> <span class="options-icon">•••</span>
+                    </h1>
+                    <div class="game-header-meta">
+                        By <a href="/profile.html">Xiang TingFeng</a><br>
+                        
+                        
+                    </div>
+
+                    <div class="r6-notice">
+                        R6 is not supported in this experience
+                    </div>
+
+                    <div class="game-actions">
+                        <button id="play-game-button" class="play-game-button">
+                            <img src="/play_triangle_white_90deg.png" alt="Play Icon"> Play
+                        </button>
+                    </div>
+
+                    <div class="social-buttons">
+                        <div class="social-button">
+                            <span class="icon">⭐</span>
+                            <span>Favorite</span>
+                        </div>
+                        <div class="social-button">
+                            <span class="icon">➕</span>
+                            <span>Add</span>
+                        </div>
+                        <div class="social-button">
+                            <span class="icon">📍</span>
+                            <span>Pin</span>
+                        </div>
+                        <div class="social-button follow">
+                            <span class="icon">📡</span>
+                            <span>Follow</span>
+                            <span class="count">100,452</span>
+                        </div>
+                        <div class="social-button like">
+                            <span class="icon">👍</span>
+                            <span>85%</span>
+                        </div>
+                        <div class="social-button dislike">
+                            <span class="icon">👎</span>
+                            <span class="count">16,400</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="private-notes-section">
+                <h3>Private Notes <span class="edit-icon">✎</span></h3>
+                <p>you're a bird!!!! be a bird!!!!</p>
+            </div>
+
+            <div class="about-section">
+                <h3>About</h3>
+                <p class="game-detail-description">Build amazing structures and explore vast worlds in this classic building simulation game.</p>
+            </div>
+
+            <div class="game-statistics">
+                <h3>Statistics</h3>
+                <div class="game-stats-grid">
+                    <div><strong id="stat-playing"></strong> Playing</div>
+                    <div><strong id="stat-favorites"></strong> Favorites</div>
+                    <div><strong id="stat-visits"></strong> Visits</div>
+                    <div><strong>Created</strong> <span id="stat-created"></span></div>
+                    <div><strong>Updated</strong> <span id="stat-updated"></span></div>
+                    <div><strong id="stat-max-players"></strong> Max Players</div>
+                    <div><strong>Genre</strong> <span id="stat-genre"></span></div>
+                    <div><strong>Subgenre</strong> <span id="stat-subgenre"></span></div>
+                    <div><strong>Supported Devices</strong> Computer, Phone, Tablet, VR</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        blingo is back.
+    </div>
+
+    <div class="mobile-nav">
+        <a href="games.html" class="mobile-nav-item active">
+            <img src="/games button.png" alt="Games">
+        </a>
+        <a href="catalog.html" class="mobile-nav-item">
+            <img src="/catalog.png" alt="Catalog">
+        </a>
+        <a href="robux.html" class="mobile-nav-item">
+            <img src="/robux button.png" alt="Robux">
+        </a>
+        <a href="profile.html" class="mobile-nav-item">
+            <img src="/profile button.png" alt="Profile">
+        </a>
+        <a href="discord.html" class="mobile-nav-item">
+            <img src="/discord.png" alt="Discord">
+        </a>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "/shared.js": "/shared.js"
+            }
+        }
+    </script>
+    <script type="module" src="/shared.js"></script>
+    <script type="module">
+        document.addEventListener('DOMContentLoaded', () => {
+            const playGameButton = document.getElementById('play-game-button');
+            const actualGameUrl = "https://folklore1.neocities.org/game1";
+
+            playGameButton.addEventListener('click', () => {
+                window.location.href = actualGameUrl;
+            });
+
+            // Helper for random date generation
+            function getRandomDate(startYear, endYear) {
+                const year = startYear + Math.floor(Math.random() * (endYear - startYear + 1));
+                const month = Math.floor(Math.random() * 12); // 0-11
+                const day = Math.floor(Math.random() * 28) + 1; // 1-28 for simplicity
+                return new Date(year, month, day).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            }
+
+            function getRandomDaysAgo(maxDays) {
+                const date = new Date();
+                date.setDate(date.getDate() - Math.floor(Math.random() * maxDays));
+                const now = new Date();
+                const diffMilliseconds = now.getTime() - date.getTime();
+                const diffSeconds = Math.floor(diffMilliseconds / 1000);
+                const diffMinutes = Math.floor(diffSeconds / 60);
+                const diffHours = Math.floor(diffMinutes / 60);
+                const diffDays = Math.floor(diffHours / 24);
+
+                if (diffDays === 0) return 'today';
+                if (diffDays === 1) return 'yesterday';
+                if (diffDays < 7) return `${diffDays} days ago`;
+                if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+                if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
+                return `${Math.floor(diffDays / 365)} years ago`;
+            }
+
+            // Statistics generation
+            const playingElement = document.getElementById('stat-playing');
+            const favoritesElement = document.getElementById('stat-favorites');
+            const visitsElement = document.getElementById('stat-visits');
+            const createdElement = document.getElementById('stat-created');
+            const updatedElement = document.getElementById('stat-updated');
+            const maxPlayersElement = document.getElementById('stat-max-players');
+            const genreElement = document.getElementById('stat-genre');
+            const subgenreElement = document.getElementById('stat-subgenre');
+
+            // For a private website, these statistics should reflect no public activity.
+            if (playingElement) playingElement.textContent = '0'; // No players if private
+            if (favoritesElement) favoritesElement.textContent = '0'; // No favorites if private
+            if (visitsElement) visitsElement.textContent = '0'; // No visits if private
+            if (createdElement) createdElement.textContent = getRandomDate(2017, 2022);
+            if (updatedElement) updatedElement.textContent = getRandomDaysAgo(90); // Last 3 months
+            if (maxPlayersElement) maxPlayersElement.textContent = Math.floor(Math.random() * 76) + 25; // 25-100
+            if (genreElement) genreElement.textContent = 'Building';
+            if (subgenreElement) subgenreElement.textContent = 'Sandbox';
+        });
+    </script>
+</body>
+</html>
